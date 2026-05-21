@@ -178,14 +178,29 @@ export function CalendarGrid() {
     const endDate = parseISO(selectionEnd.date);
     const cellDate = parseISO(date);
 
-    const hourInRange = hour >= Math.min(selectionStart.hour, selectionEnd.hour) &&
-      hour <= Math.max(selectionStart.hour, selectionEnd.hour);
+    const minHour = Math.min(selectionStart.hour, selectionEnd.hour);
+    const maxHour = Math.max(selectionStart.hour, selectionEnd.hour);
 
-    const dateInRange =
-      isSameDay(cellDate, startDate) || isSameDay(cellDate, endDate) ||
-      (cellDate > startDate && cellDate < endDate);
+    const sameDayStart = isSameDay(cellDate, startDate);
+    const sameDayEnd = isSameDay(cellDate, endDate);
 
-    return (isSameDay(cellDate, startDate) || isSameDay(cellDate, endDate) || dateInRange) && hourInRange;
+    if (sameDayStart && sameDayEnd) {
+      return hour >= minHour && hour <= maxHour;
+    }
+
+    if (sameDayStart) {
+      return hour >= minHour;
+    }
+
+    if (sameDayEnd) {
+      return hour <= maxHour;
+    }
+
+    if (cellDate > startDate && cellDate < endDate) {
+      return true;
+    }
+
+    return false;
   };
 
   if (!currentUser && !showIdentity) {
@@ -473,7 +488,9 @@ function WeekDayView({
                 data-date={day.date}
                 data-hour={hourIndex}
                 className={`relative min-h-[48px] border-t border-transparent transition-colors ${
-                  selected ? 'bg-purple-500/10' : 'hover:bg-muted/30'
+                  selected
+                    ? 'bg-purple-500/20 shadow-[inset_0_0_0_1px_rgba(124,58,237,0.3)]'
+                    : 'hover:bg-muted/30'
                 }`}
               >
                 {cellSlots.map((slot) => (
@@ -553,7 +570,9 @@ function DayView({
               data-date={dateStr}
               data-hour={hourIndex}
               className={`flex min-h-[56px] border-t border-transparent transition-colors ${
-                selected ? 'bg-purple-500/10' : 'hover:bg-muted/30'
+                selected
+                  ? 'bg-purple-500/20 shadow-[inset_0_0_0_1px_rgba(124,58,237,0.3)]'
+                  : 'hover:bg-muted/30'
               }`}
             >
               <div className="w-16 shrink-0 pt-1 text-right text-xs text-muted-foreground">
