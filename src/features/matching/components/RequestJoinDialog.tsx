@@ -66,8 +66,8 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
         <div className="w-full max-w-sm px-6 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10">
-            <Check className="h-6 w-6 text-purple-500" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
+            <Check className="h-6 w-6 text-emerald-500" />
           </div>
           <h2 className="mt-4 text-xl font-medium tracking-tight">You&apos;re in!</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -120,7 +120,7 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Hi! I&apos;d like to work on..."
               rows={3}
-              className="mt-1 w-full resize-none border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-purple-600"
+              className="mt-1 w-full resize-none border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-emerald-500"
             />
           </div>
           <button

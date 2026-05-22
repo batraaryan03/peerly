@@ -14,7 +14,7 @@ export default function ContactPage() {
             <input
               type="email"
               placeholder="you@example.com"
-              className="mt-1 w-full border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-purple-600"
+              className="mt-1 w-full border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-emerald-500"
             />
           </div>
           <div>
@@ -24,7 +24,7 @@ export default function ContactPage() {
             <textarea
               rows={4}
               placeholder="What&apos;s on your mind?"
-              className="mt-1 w-full resize-none border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-purple-600"
+              className="mt-1 w-full resize-none border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-emerald-500"
             />
           </div>
           <button

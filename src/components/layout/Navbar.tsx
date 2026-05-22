@@ -15,22 +15,25 @@ export function Navbar() {
   const { isSignedIn } = useUser();
 
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-50 border-b border-zinc-200/50 bg-white/90 backdrop-blur-md">
+      <nav className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
+          <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500 text-[10px] font-bold text-white">
+              P
+            </div>
             {APP_NAME}
           </Link>
           <div className="hidden items-center gap-6 text-sm md:flex">
             <Link
               href="/pricing"
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              className="text-zinc-500 transition-colors hover:text-zinc-900"
             >
               Pricing
             </Link>
             <Link
               href="/about"
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              className="text-zinc-500 transition-colors hover:text-zinc-900"
             >
               About
             </Link>
@@ -41,7 +44,7 @@ export function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 href="/calendar"
-                className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-zinc-800 active:scale-[0.98]"
               >
                 Dashboard
               </Link>
@@ -52,20 +55,20 @@ export function Navbar() {
               {currentUser ? (
                 <Link
                   href="/calendar"
-                  className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                  className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-zinc-800 active:scale-[0.98]"
                 >
                   Dashboard
                 </Link>
               ) : (
                 <div className="flex items-center gap-2">
                   <SignInButton mode="modal">
-                    <button className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                    <button className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
                       Sign in
                     </button>
                   </SignInButton>
                   <SignUpButton mode="modal">
-                    <button className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90">
-                      Get Started
+                    <button className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-zinc-800 active:scale-[0.98]">
+                      Get started
                     </button>
                   </SignUpButton>
                 </div>

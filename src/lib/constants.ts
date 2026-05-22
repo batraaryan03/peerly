@@ -12,9 +12,9 @@ export const MOCK_USERS = [
   },
   {
     id: 'user-2',
-    name: 'Sarah Chen',
-    email: 'sarah@peerly.dev',
-    avatar: 'SC',
+    name: 'Elena Voss',
+    email: 'elena@peerly.dev',
+    avatar: 'EV',
     bio: 'Systems engineer. Love distributed systems & compilers.',
     rating: 4.6,
     ratingCount: 18,

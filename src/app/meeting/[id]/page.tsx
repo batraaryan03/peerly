@@ -50,7 +50,7 @@ export default function MeetingPage() {
         <p className="text-muted-foreground">Session not found.</p>
         <Link
           href="/sessions"
-          className="text-sm font-medium text-purple-600 hover:underline"
+          className="text-sm font-medium text-emerald-500 hover:underline"
         >
           Back to sessions
         </Link>

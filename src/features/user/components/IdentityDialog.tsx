@@ -49,10 +49,15 @@ export function IdentityDialog() {
   if (submitted || currentUser) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="w-full max-w-sm px-6">
-        <h2 className="text-2xl font-medium tracking-tight">Welcome to Peerly</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-sm font-bold text-white">
+          P
+        </div>
+        <h2 className="mt-4 text-xl font-medium tracking-tight text-zinc-900">
+          Welcome to Peerly
+        </h2>
+        <p className="mt-1 text-sm text-zinc-500">
           What should we call you?
         </p>
         <form onSubmit={handleSubmit} className="mt-6">
@@ -61,13 +66,13 @@ export function IdentityDialog() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
-            className="w-full border-0 border-b border-transparent bg-transparent pb-2 text-lg font-medium outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-purple-600"
+            className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-base font-medium outline-none ring-0 placeholder:text-zinc-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
             autoFocus
             maxLength={50}
           />
           <button
             type="submit"
-            className="mt-6 w-full rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            className="mt-4 w-full rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-zinc-800 active:scale-[0.98]"
           >
             Get started
           </button>

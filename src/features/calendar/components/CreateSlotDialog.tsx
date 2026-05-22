@@ -68,7 +68,7 @@ export function CreateSlotDialog({ defaultStart, defaultEnd, onClose }: CreateSl
               type="datetime-local"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1 w-full border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 focus:border-b focus:border-purple-600"
+              className="mt-1 w-full border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 focus:border-b focus:border-emerald-500"
             />
           </div>
           <div>
@@ -77,7 +77,7 @@ export function CreateSlotDialog({ defaultStart, defaultEnd, onClose }: CreateSl
               type="datetime-local"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1 w-full border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 focus:border-b focus:border-purple-600"
+              className="mt-1 w-full border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 focus:border-b focus:border-emerald-500"
             />
           </div>
           <button

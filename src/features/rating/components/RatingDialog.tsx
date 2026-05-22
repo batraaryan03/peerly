@@ -72,7 +72,7 @@ export function RatingDialog({ session, onClose, onSubmit }: RatingDialogProps) 
               <Star
                 className={`h-8 w-8 ${
                   n <= (hovered || score)
-                    ? 'fill-purple-600 text-purple-600'
+                    ? 'fill-emerald-500 text-emerald-500'
                     : 'text-muted-foreground/30'
                 }`}
               />
@@ -85,7 +85,7 @@ export function RatingDialog({ session, onClose, onSubmit }: RatingDialogProps) 
             onChange={(e) => setComment(e.target.value)}
             placeholder="Write a comment (optional)"
             rows={3}
-            className="w-full resize-none border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-purple-600"
+            className="w-full resize-none border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-emerald-500"
           />
         </div>
         <button
