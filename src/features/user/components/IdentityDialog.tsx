@@ -48,16 +48,22 @@ export function IdentityDialog() {
 
   if (submitted || currentUser) return null;
 
+  const glossyBtn = {
+    backgroundImage: 'linear-gradient(135deg, rgba(203,108,230,1) 0%, rgba(203,108,230,0.88) 50%, rgba(203,108,230,1) 100%)',
+  } as React.CSSProperties;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-2xl bg-white/[0.06] p-6 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-xs font-bold text-white">
-          P
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md">
+      <div
+        className="w-full max-w-sm overflow-hidden bg-white p-6 shadow-[0_12px_48px_rgba(203,108,230,0.12),0_24px_48px_rgba(0,0,0,0.08)]"
+      >
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]" style={glossyBtn}>
+          <span className="text-xs font-bold text-white">P</span>
         </div>
-        <h2 className="mt-3 text-base font-medium text-foreground">
+        <h2 className="mt-3 text-base font-semibold tracking-tight text-zinc-800">
           Welcome to Peerly
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-sm text-zinc-500">
           What should we call you?
         </p>
         <form onSubmit={handleSubmit} className="mt-4">
@@ -66,13 +72,14 @@ export function IdentityDialog() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
-            className="w-full rounded-lg bg-white/[0.04] px-3 py-2.5 text-sm font-medium text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] outline-none placeholder:text-muted-foreground/40 focus-visible:shadow-[inset_0_0_0_1px_#10b981]"
+            className="mt-1 w-full rounded border border-[rgba(203,108,230,0.15)] bg-zinc-50 px-3 py-2.5 text-sm font-medium text-zinc-800 outline-none transition-colors hover:border-[rgba(203,108,230,0.3)] focus:border-[#CB6CE6] focus:bg-white focus:ring-1 focus:ring-[rgba(203,108,230,0.2)] placeholder:text-zinc-300"
             autoFocus
             maxLength={50}
           />
           <button
             type="submit"
-            className="mt-3 w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-emerald-600 active:scale-[0.98]"
+            className="mt-3 w-full rounded px-4 py-2.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(203,108,230,0.3)] transition-all active:scale-[0.97]"
+            style={glossyBtn}
           >
             Get started
           </button>

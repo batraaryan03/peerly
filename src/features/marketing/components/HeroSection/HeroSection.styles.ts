@@ -1,16 +1,18 @@
 export const hero = {
-  section: "relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-zinc-950",
-  overlay: "absolute inset-0 bg-zinc-950/70 backdrop-blur-[2px]",
+  section: "relative min-h-[100dvh] flex items-center justify-center overflow-hidden",
+  image: "absolute inset-0 bg-cover bg-center will-change-transform",
+  overlay: "absolute inset-0 bg-[#08090d]/50",
   content: "relative z-10 mx-auto max-w-4xl px-6 text-center",
   title:
-    "text-5xl font-medium leading-tight tracking-tighter text-white sm:text-6xl md:text-7xl lg:text-8xl",
-  accent: "text-[#8B5CF6]",
+    "text-5xl font-medium leading-[0.95] tracking-tighter text-white sm:text-6xl md:text-7xl lg:text-[5.5rem]",
+  accent: 'text-[#D992F7]',
   description:
-    "mt-5 mx-auto max-w-[45ch] text-base text-zinc-500 sm:text-lg leading-relaxed",
+    "mt-5 mx-auto max-w-[44ch] text-base text-white/55 sm:text-lg leading-relaxed",
   actions: "mt-10 flex items-center justify-center gap-4",
   primaryAction:
-    "bg-[#8B5CF6] px-7 py-3.5 text-sm font-medium text-white transition-all hover:bg-[#7C3AED] active:scale-[0.98] shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]",
+    "px-8 py-3.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_12px_rgba(203,108,230,0.35)] transition-all active:scale-[0.97] bg-[#CB6CE6]",
   secondaryAction:
-    "bg-white/[0.04] px-7 py-3.5 text-sm font-medium text-zinc-400 transition-all hover:text-zinc-200 hover:bg-white/[0.08] active:scale-[0.98] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
-  bottomLine: "absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#8B5CF6]/20 to-transparent",
+    "px-8 py-3.5 text-sm font-medium text-white/70 border border-white/10 transition-all hover:border-white/25 hover:text-white active:scale-[0.97]",
+  bottomLine: "absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent",
+  glow: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-[#CB6CE6]/10 blur-[120px] pointer-events-none",
 };

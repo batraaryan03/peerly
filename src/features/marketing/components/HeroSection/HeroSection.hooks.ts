@@ -9,21 +9,36 @@ gsap.registerPlugin(ScrollTrigger);
 export function useHeroParallax() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
     const image = imageRef.current;
-    if (!section || !image) return;
+    const content = contentRef.current;
+    if (!section || !image || !content) return;
 
     const ctx = gsap.context(() => {
       gsap.to(image, {
-        scale: 1.25,
+        y: 80,
+        scale: 1.15,
         ease: 'none',
         scrollTrigger: {
           trigger: section,
           start: 'top top',
           end: 'bottom top',
-          scrub: 1.5,
+          scrub: 1,
+        },
+      });
+
+      gsap.to(content, {
+        y: -40,
+        opacity: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1.2,
         },
       });
     }, section);
@@ -31,5 +46,5 @@ export function useHeroParallax() {
     return () => ctx.revert();
   }, []);
 
-  return { sectionRef, imageRef };
+  return { sectionRef, imageRef, contentRef };
 }

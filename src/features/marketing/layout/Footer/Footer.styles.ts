@@ -1,8 +1,10 @@
 export const footer = {
   wrapper:
-    "relative min-h-[50dvh] bg-[#8B5CF6] flex flex-col justify-between",
+    "relative min-h-[50dvh] bg-[#CB6CE6] flex flex-col justify-between",
   container: "mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 pt-20 pb-10 md:px-12",
   top: "flex-1",
+  logoWrapper: "mb-6",
+  logo: "h-10 w-auto",
   tagline:
     "max-w-[16ch] text-4xl font-medium leading-tight tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl",
   taglineAccent: "text-white/60",

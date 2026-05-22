@@ -57,6 +57,7 @@ export function FeaturesSection() {
               }}
               className={features.cell}
             >
+              <div className={features.cellBorder} />
               <div className={features.line} />
               <h3 className={features.title}>{feature.title}</h3>
               <p className={features.desc}>{feature.description}</p>

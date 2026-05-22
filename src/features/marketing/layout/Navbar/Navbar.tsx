@@ -10,39 +10,43 @@ export function Navbar() {
 
   return (
     <header className={navbar.header}>
-      <nav className={navbar.nav}>
-        <Link href="/" className={navbar.logo}>
-          <PeerlyLogo className={navbar.logoIcon} />
-          Peerly
-        </Link>
-        <div className={navbar.links}>
-          <Link href="/pricing" className={navbar.link}>
-            Pricing
+      <div className={`${navbar.notch} ${navbar.notchGlass}`}>
+        <nav className={navbar.nav}>
+          <Link href="/" className={navbar.logo}>
+            <PeerlyLogo className={navbar.logoIcon} />
+            Peerly
           </Link>
-          <Link href="/about" className={navbar.link}>
-            About
-          </Link>
-        </div>
-        <div className="flex items-center gap-2">
-          {isSignedIn ? (
-            <div className="flex items-center gap-2">
-              <Link href="/calendar" className={navbar.dashboard}>
-                Dashboard
-              </Link>
-              <UserButton />
-            </div>
-          ) : (
-            <>
-              <SignInButton mode="modal">
-                <button className={navbar.signIn}>Sign in</button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className={navbar.signUp}>Sign up</button>
-              </SignUpButton>
-            </>
-          )}
-        </div>
-      </nav>
+          <div className={navbar.links}>
+            <Link href="/pricing" className={navbar.link}>
+              Pricing
+            </Link>
+            <Link href="/about" className={navbar.link}>
+              About
+            </Link>
+          </div>
+          <div className="flex items-center gap-1">
+            {isSignedIn ? (
+              <div className="flex items-center gap-1">
+                <Link href="/calendar" className={navbar.dashboard}>
+                  Dashboard
+                </Link>
+                <UserButton />
+              </div>
+            ) : (
+              <>
+                <SignInButton mode="modal">
+                  <button className={navbar.signIn}>Sign in</button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className={navbar.signUp}>
+                    Sign up
+                  </button>
+                </SignUpButton>
+              </>
+            )}
+          </div>
+        </nav>
+      </div>
     </header>
   );
 }

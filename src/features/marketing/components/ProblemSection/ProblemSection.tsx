@@ -4,10 +4,13 @@ import { problem } from './ProblemSection.styles';
 import { useProblemReveal } from './ProblemSection.hooks';
 
 export function ProblemSection() {
-  const ref = useProblemReveal();
+  const { ref, pageRef } = useProblemReveal();
 
   return (
     <section ref={ref} className={problem.section}>
+      <div ref={pageRef} className={problem.pageBg}>
+        <div className={problem.pageBgInner} />
+      </div>
       <div className={problem.container}>
         <div className={problem.grid}>
           <div data-reveal>

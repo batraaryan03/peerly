@@ -70,14 +70,14 @@ export default function SessionsPage() {
       : { name: session.hostName, avatar: session.hostAvatar };
 
     return (
-      <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+      <div className="flex items-center justify-between bg-[rgba(203,108,230,0.04)] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-[10px] font-bold text-muted-foreground">
+          <div className="flex h-9 w-9 items-center justify-center text-[10px] font-bold text-zinc-300 bg-[rgba(203,108,230,0.12)]">
             {partner.avatar}
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground">{partner.name}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm font-medium text-zinc-100">{partner.name}</p>
+            <p className="text-xs text-zinc-500">
               {formatSlotDate(session.startTime)} &middot;{' '}
               {formatSlotTime(session.startTime)} &mdash;{' '}
               {formatSlotTime(session.endTime)}
@@ -88,33 +88,33 @@ export default function SessionsPage() {
           {session.status === 'approved' && !past && (
             <Link
               href={`/meeting/${session.id}`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-2.5 py-1.5 text-[11px] font-medium text-white transition-all hover:bg-emerald-600 active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 bg-[#CB6CE6] px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_2px_8px_rgba(203,108,230,0.3)] transition-all hover:bg-[#9C4FC2] active:scale-[0.98]"
             >
               <Video className="h-3 w-3" />
               Join
             </Link>
           )}
           {session.status === 'approved' && past && (
-            <span className="text-xs text-muted-foreground">Completed</span>
+            <span className="text-xs text-zinc-500">Completed</span>
           )}
           {session.status === 'pending' && isHost && (
             <div className="flex items-center gap-1">
               <button
                 onClick={() => handleApprove(session.id)}
-                className="rounded-lg bg-emerald-500 p-1.5 text-white transition-all hover:bg-emerald-600 active:scale-[0.98]"
+                className="bg-[#CB6CE6] p-1.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition-all hover:bg-[#9C4FC2] active:scale-[0.98]"
               >
                 <Check className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => handleReject(session.id)}
-                className="rounded-lg bg-white/[0.06] p-1.5 text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all hover:bg-white/[0.1] hover:text-foreground active:scale-[0.98]"
+                className="p-1.5 text-zinc-500 bg-[rgba(203,108,230,0.06)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all hover:bg-[rgba(203,108,230,0.12)] hover:text-zinc-200 active:scale-[0.98]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
           {session.status === 'pending' && !isHost && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1 text-xs text-zinc-500">
               <Clock className="h-3 w-3" />
               Awaiting approval
             </span>
@@ -126,13 +126,13 @@ export default function SessionsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <h1 className="text-lg font-medium tracking-tight text-foreground">Sessions</h1>
+      <h1 className="text-base font-semibold tracking-tight text-zinc-100">Sessions</h1>
 
       {incomingRequests.length > 0 && (
         <section className="mt-6">
           <div className="flex items-center gap-2">
-            <Inbox className="h-4 w-4 text-emerald-500" />
-            <h2 className="text-xs font-medium text-muted-foreground">
+            <Inbox className="h-3.5 w-3.5 text-[#CB6CE6]" />
+            <h2 className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest">
               Incoming requests ({incomingRequests.length})
             </h2>
           </div>
@@ -147,7 +147,7 @@ export default function SessionsPage() {
       )}
 
       <section className="mt-6">
-        <h2 className="text-xs font-medium text-muted-foreground">
+        <h2 className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest">
           Upcoming ({hosted.filter((s) => s.status !== 'cancelled').length + participating.filter((s) => s.status !== 'cancelled').length})
         </h2>
         <div className="mt-3 flex flex-col gap-2">
@@ -162,9 +162,9 @@ export default function SessionsPage() {
               />
             ))}
           {[...hosted, ...participating].filter((s) => s.status !== 'cancelled').length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-2xl bg-white/[0.02] px-6 py-14 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-              <p className="text-sm font-medium text-muted-foreground">No upcoming sessions</p>
-              <p className="mt-1 text-xs text-muted-foreground/60">
+            <div className="flex flex-col items-center justify-center border border-[rgba(203,108,230,0.12)] bg-[rgba(203,108,230,0.03)] px-6 py-16 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
+              <p className="text-sm font-medium text-zinc-400">No upcoming sessions</p>
+              <p className="mt-1.5 text-xs text-zinc-600">
                 Find someone on the calendar and request to join.
               </p>
             </div>

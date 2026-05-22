@@ -14,40 +14,60 @@ interface SlotBlockProps {
 
 export function SlotBlock({ slot, isOwn, onClick, onContextMenu, userColors }: SlotBlockProps) {
   const isAvailable = slot.status === 'available';
+  const isBooked = slot.status === 'booked';
+  const isCancelled = slot.status === 'cancelled';
   const isClickable = isAvailable && !isOwn;
-  const colors = userColors || { bg: 'bg-white/[0.04]', text: 'text-zinc-400', dot: 'bg-zinc-500' };
+  const colors = userColors || {
+    bg: 'bg-[rgba(203,108,230,0.07)]',
+    text: 'text-[rgba(203,108,230,0.85)]',
+    dot: 'bg-[#9C4FC2]',
+  };
+
+  const getBlockClass = () => {
+    if (isOwn) {
+      return `${colors.bg} ${colors.text} shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]`;
+    }
+    if (isBooked || isCancelled) {
+      return 'bg-zinc-200 text-zinc-400 shadow-none';
+    }
+    return `${colors.bg} ${colors.text} shadow-[inset_0_0_0_rgba(255,255,255,0.6)]`;
+  };
+
+  const getBorderClass = () => {
+    if (isOwn) return 'border-l-[3px] border-l-[#CB6CE6]';
+    if (isBooked || isCancelled) return 'border-l-[2px] border-l-zinc-300';
+    return 'border-l-[3px] border-l-[#9C4FC2]';
+  };
 
   return (
     <motion.button
       layout
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ scale: 1.02 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       onClick={isClickable ? onClick : undefined}
       onContextMenu={(e) => {
         e.preventDefault();
         onContextMenu?.();
       }}
-      className={`h-full w-full rounded-none px-2.5 py-1 text-left text-xs leading-tight backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] ${
-        isOwn
-          ? 'bg-[#8B5CF6]/20 text-[#8B5CF6] border-l-2 border-[#8B5CF6]'
-          : isAvailable
-            ? `${colors.bg} ${colors.text} cursor-pointer border-l-2 border-zinc-600`
-            : 'bg-white/[0.04] text-zinc-500 border-l-2 border-zinc-700'
-      } ${!isClickable ? 'cursor-default' : ''}`}
       title={`${slot.userName}: ${formatSlotTime(slot.startTime)} — ${formatSlotTime(slot.endTime)}`}
+      className={`
+        h-full w-full rounded-none px-2 py-0.5 text-left text-[10.5px] leading-snug
+        backdrop-blur-xl transition-all duration-100
+        ${getBlockClass()} ${getBorderClass()}
+        ${isClickable ? 'cursor-pointer hover:shadow-[0_0_10px_rgba(203,108,230,0.15)]' : 'cursor-default'}
+        ${!isClickable && !isBooked && !isCancelled ? '' : ''}
+      `}
     >
       <div className="flex items-center gap-1.5">
-        <span className="truncate text-[10px] font-medium">{slot.userName}</span>
-        <span className="shrink-0 text-[9px] opacity-60">
+        <div className="mt-px h-1 w-1 shrink-0 rounded-full [background:currentColor]" />
+        <span className="truncate font-medium">{slot.userName}</span>
+        <span className="shrink-0 text-[9px] opacity-50">
           {formatSlotTime(slot.startTime)}
         </span>
       </div>
-      {isOwn && onContextMenu && (
-        <span className="mt-0.5 block text-[8px] opacity-40">Right-click to remove</span>
-      )}
     </motion.button>
   );
 }
