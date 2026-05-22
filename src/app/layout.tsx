@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
+import { dark, shadcn } from '@clerk/ui/themes'; 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -32,7 +34,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ClerkProvider
           appearance={{
-            layout: {
+            options: {
               unsafe_disableDevelopmentModeWarnings: true,
             },
           }}

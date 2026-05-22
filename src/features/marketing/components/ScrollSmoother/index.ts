@@ -1,0 +1,1 @@
+export { ScrollSmootherProvider } from './ScrollSmoother';

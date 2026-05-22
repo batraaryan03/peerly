@@ -80,3 +80,12 @@ export interface WeekDay {
   dayNumber: number;
   isToday: boolean;
 }
+
+export interface RecurringRule {
+  id: string;
+  userId: string;
+  dayOfWeek: number;
+  startHour: number;
+  endHour: number;
+  active: boolean;
+}

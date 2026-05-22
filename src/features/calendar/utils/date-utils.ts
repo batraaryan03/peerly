@@ -40,8 +40,8 @@ export function getMonthGrid(date: Date): { date: Date; isCurrentMonth: boolean 
   }));
 }
 
-export function getTimeSlotsForDay(slots: TimeSlot[], date: string): TimeSlot[] {
-  const day = parseISO(date);
+export function getTimeSlotsForDay(slots: TimeSlot[], dateIso: string): TimeSlot[] {
+  const day = parseISO(dateIso);
   return slots.filter((slot) => {
     const slotStart = parseISO(slot.startTime);
     return isSameDay(slotStart, day);
@@ -67,15 +67,38 @@ export function getCurrentMonthLabel(date: Date): string {
   return format(date, 'MMMM yyyy');
 }
 
-export function getHourLabels(granularity: number = 1): string[] {
-  const count = 14 / granularity;
+export function getHourLabels(): string[] {
+  const count = 14;
   return Array.from({ length: count }, (_, i) => {
-    const hour = Math.floor(i * granularity) + 7;
-    const minute = (i * granularity) % 1 === 0.5 ? 30 : 0;
+    const hour = i + 7;
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const h = hour > 12 ? hour - 12 : hour;
-    return minute === 0 ? `${h} ${ampm}` : '';
+    return `${h} ${ampm}`;
   });
+}
+
+export function getHourFromLabel(label: string): number {
+  const match = label.match(/(\d+)\s*(AM|PM)/i);
+  if (!match) return 0;
+  let hour = parseInt(match[1], 10);
+  const period = match[2].toUpperCase();
+  if (period === 'PM' && hour !== 12) hour += 12;
+  if (period === 'AM' && hour === 12) hour = 0;
+  return hour;
+}
+
+export function getSlotPosition(
+  slot: TimeSlot,
+  baseHour: number,
+  rowHeight: number,
+): { top: number; height: number } {
+  const start = parseISO(slot.startTime);
+  const end = parseISO(slot.endTime);
+  const startHour = start.getHours() + start.getMinutes() / 60;
+  const endHour = end.getHours() + end.getMinutes() / 60;
+  const top = (startHour - baseHour) * rowHeight;
+  const height = (endHour - startHour) * rowHeight;
+  return { top, height };
 }
 
 export function generateSlotId(): string {
@@ -107,4 +130,19 @@ export function addWeeksFn(date: Date, n: number): Date {
 
 export function subWeeksFn(date: Date, n: number): Date {
   return addDays(date, -n * 7);
+}
+
+export function getSlotsInRange(
+  slots: TimeSlot[],
+  dayStart: Date,
+  hourStart: number,
+  hourEnd: number,
+  baseHour: number,
+): TimeSlot[] {
+  return slots.filter((slot) => {
+    const s = parseISO(slot.startTime);
+    if (!isSameDay(s, dayStart)) return false;
+    const h = s.getHours();
+    return h >= baseHour + hourStart && h < baseHour + hourEnd;
+  });
 }

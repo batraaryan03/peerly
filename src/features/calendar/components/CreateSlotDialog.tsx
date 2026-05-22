@@ -50,10 +50,10 @@ export function CreateSlotDialog({ defaultStart, defaultEnd, onClose }: CreateSl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="w-full max-w-md px-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl bg-white/[0.06] p-6 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-medium tracking-tight">Block time</h2>
+          <h2 className="text-base font-medium text-foreground">Block time</h2>
           <button
             onClick={onClose}
             className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
@@ -61,14 +61,14 @@ export function CreateSlotDialog({ defaultStart, defaultEnd, onClose }: CreateSl
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="mt-6 space-y-4">
+        <div className="mt-4 space-y-4">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Start</label>
             <input
               type="datetime-local"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1 w-full border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 focus:border-b focus:border-emerald-500"
+              className="mt-1 w-full rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] outline-none focus-visible:shadow-[inset_0_0_0_1px_#10b981] [color-scheme:dark]"
             />
           </div>
           <div>
@@ -77,12 +77,12 @@ export function CreateSlotDialog({ defaultStart, defaultEnd, onClose }: CreateSl
               type="datetime-local"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1 w-full border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 focus:border-b focus:border-emerald-500"
+              className="mt-1 w-full rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] outline-none focus-visible:shadow-[inset_0_0_0_1px_#10b981] [color-scheme:dark]"
             />
           </div>
           <button
             onClick={handleCreate}
-            className="mt-4 w-full rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-emerald-600 active:scale-[0.98]"
           >
             Create slot
           </button>

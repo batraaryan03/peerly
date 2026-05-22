@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import {
   parseISO,
   isSameDay,
@@ -28,37 +28,41 @@ import {
   getHourLabels,
   generateSlotId,
   getSlotsForDate,
+  getSlotPosition,
 } from '@/features/calendar/utils/date-utils';
 import { SlotBlock } from '@/features/calendar/components/SlotBlock';
+import { RecurringSettings } from '@/features/calendar/components/RecurringSettings';
+import { useRecurringSlots } from '@/features/calendar/hooks/useRecurringSlots';
 import { RequestJoinDialog } from '@/features/matching/components/RequestJoinDialog';
 import { IdentityDialog } from '@/features/user/components/IdentityDialog';
 import type { TimeSlot } from '@/types';
 
 type ViewMode = 'month' | 'week' | 'day';
 
-const USER_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  'user-1': { bg: 'bg-emerald-500/15', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  'user-2': { bg: 'bg-sky-500/15', text: 'text-sky-700', dot: 'bg-sky-500' },
-  'user-3': { bg: 'bg-amber-500/15', text: 'text-amber-700', dot: 'bg-amber-500' },
-  'user-4': { bg: 'bg-rose-500/15', text: 'text-rose-700', dot: 'bg-rose-500' },
-  'user-5': { bg: 'bg-violet-500/15', text: 'text-violet-700', dot: 'bg-violet-500' },
-};
+const ROW_HEIGHT = 52;
+const BASE_HOUR = 7;
+const HOUR_COUNT = 14;
 
-function getSlotColor(userId: string, isOwn: boolean): { bg: string; text: string; dot: string } {
-  if (isOwn) return { bg: 'bg-emerald-500/20', text: 'text-emerald-700', dot: 'bg-emerald-500' };
-  return USER_COLORS[userId] || { bg: 'bg-zinc-500/10', text: 'text-zinc-600', dot: 'bg-zinc-400' };
+function hasOverlap(existing: TimeSlot[], start: Date, end: Date): boolean {
+  return existing.some((slot) => {
+    const s = parseISO(slot.startTime);
+    const e = parseISO(slot.endTime);
+    return s < end && e > start;
+  });
 }
 
 export function CalendarGrid() {
   const currentUser = useUserStore((s) => s.currentUser);
   const timeSlots = useCalendarStore((s) => s.timeSlots);
   const addTimeSlot = useCalendarStore((s) => s.addTimeSlot);
+  const removeTimeSlot = useCalendarStore((s) => s.removeTimeSlot);
   const selectedDate = useCalendarStore((s) => s.selectedDate);
 
   const [view, setView] = useState<ViewMode>('week');
   const [cursorDate, setCursorDate] = useState(() => parseISO(selectedDate));
   const [showIdentity, setShowIdentity] = useState(!currentUser);
   const [showRequestDialog, setShowRequestDialog] = useState(false);
+  const [showRecurring, setShowRecurring] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -68,7 +72,12 @@ export function CalendarGrid() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   const hours = useMemo(() => getHourLabels(), []);
-  const baseHour = 7;
+
+  const displayedDays = useMemo(
+    () => (view === 'week' ? getWeekDays(cursorDate) : [{ date: cursorDate.toISOString() }]),
+    [view, cursorDate],
+  );
+  useRecurringSlots(displayedDays);
 
   const goBack = useCallback(() => {
     if (view === 'month') setCursorDate((d) => subMonths(d, 1));
@@ -100,32 +109,6 @@ export function CalendarGrid() {
     return { date, hour };
   };
 
-  const startCreateSlot = useCallback(
-    (date: string, hour: number) => {
-      if (!currentUser) {
-        setShowIdentity(true);
-        return;
-      }
-      const start = new Date(parseISO(date));
-      start.setHours(baseHour + hour, 0, 0, 0);
-      const end = new Date(start);
-      end.setHours(start.getHours() + 1, 0, 0, 0);
-
-      const newSlot: TimeSlot = {
-        id: generateSlotId(),
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userAvatar: currentUser.avatar,
-        startTime: start.toISOString(),
-        endTime: end.toISOString(),
-        status: 'available',
-        createdAt: Date.now(),
-      };
-      addTimeSlot(newSlot);
-    },
-    [currentUser, addTimeSlot, baseHour],
-  );
-
   const handleCellMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
     const cell = getCellFromEvent(e);
@@ -145,11 +128,6 @@ export function CalendarGrid() {
   const handleMouseUp = useCallback(() => {
     if (!isDragging || !selectionStart || !selectionEnd) {
       setIsDragging(false);
-      return;
-    }
-    setIsDragging(false);
-    if (!currentUser) {
-      setShowIdentity(true);
       setSelectionStart(null);
       setSelectionEnd(null);
       return;
@@ -158,41 +136,52 @@ export function CalendarGrid() {
     const startDate = parseISO(selectionStart.date);
     const endDate = parseISO(selectionEnd.date);
     const startHour = Math.min(selectionStart.hour, selectionEnd.hour);
-    const endHour = Math.max(selectionStart.hour, selectionEnd.hour) + 1;
+    const endHour = Math.max(selectionStart.hour, selectionEnd.hour);
+    const durationHours = endHour - startHour + 1;
 
-    if (endHour <= startHour) {
+    setIsDragging(false);
+
+    if (!currentUser) {
+      setShowIdentity(true);
       setSelectionStart(null);
       setSelectionEnd(null);
       return;
     }
 
-    const dayStart = startDate < endDate ? startDate : endDate;
+    if (durationHours < 1) {
+      setSelectionStart(null);
+      setSelectionEnd(null);
+      return;
+    }
+
+    let current = startDate < endDate ? startDate : endDate;
     const dayEnd = startDate < endDate ? endDate : startDate;
 
-    let current = dayStart;
     while (current <= dayEnd || isSameDay(current, dayEnd)) {
-      const start = new Date(current);
-      start.setHours(baseHour + startHour, 0, 0, 0);
-      const end = new Date(current);
-      end.setHours(baseHour + endHour, 0, 0, 0);
+      const slotStart = new Date(current);
+      slotStart.setHours(BASE_HOUR + startHour, 0, 0, 0);
+      const slotEnd = new Date(current);
+      slotEnd.setHours(BASE_HOUR + endHour + 1, 0, 0, 0);
 
-      addTimeSlot({
-        id: generateSlotId(),
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userAvatar: currentUser.avatar,
-        startTime: start.toISOString(),
-        endTime: end.toISOString(),
-        status: 'available',
-        createdAt: Date.now(),
-      });
+      if (!hasOverlap(timeSlots, slotStart, slotEnd)) {
+        addTimeSlot({
+          id: generateSlotId(),
+          userId: currentUser.id,
+          userName: currentUser.name,
+          userAvatar: currentUser.avatar,
+          startTime: slotStart.toISOString(),
+          endTime: slotEnd.toISOString(),
+          status: 'available',
+          createdAt: Date.now(),
+        });
+      }
 
       current = addDays(current, 1);
     }
 
     setSelectionStart(null);
     setSelectionEnd(null);
-  }, [isDragging, selectionStart, selectionEnd, currentUser, addTimeSlot, baseHour]);
+  }, [isDragging, selectionStart, selectionEnd, currentUser, addTimeSlot, timeSlots]);
 
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
@@ -208,6 +197,12 @@ export function CalendarGrid() {
     if (slot.status !== 'available') return;
     setSelectedSlot(slot);
     setShowRequestDialog(true);
+  };
+
+  const handleSlotRightClick = (slot: TimeSlot) => {
+    if (!currentUser) return;
+    if (slot.userId !== currentUser.id) return;
+    removeTimeSlot(slot.id);
   };
 
   const isInSelection = (date: string, hour: number) => {
@@ -227,60 +222,72 @@ export function CalendarGrid() {
   };
 
   return (
-    <div className="flex flex-col bg-zinc-50/50" style={{ height: 'calc(100vh - 53px)' }}>
+    <div className="flex flex-col bg-zinc-950" style={{ height: 'calc(100vh - 53px)' }}>
       {showIdentity && <IdentityDialog />}
       {showRequestDialog && selectedSlot && (
         <RequestJoinDialog slot={selectedSlot} onClose={() => setShowRequestDialog(false)} />
       )}
+      {showRecurring && (
+        <RecurringSettings onClose={() => setShowRecurring(false)} />
+      )}
 
-      <div className="flex items-center justify-between border-b border-zinc-200/50 bg-white px-6 py-2.5">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between border-b border-white/[0.04] px-6 py-2.5">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-0.5">
             <button
               onClick={goBack}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
+              className="flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-300"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={goToday}
-              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+              className="rounded-none bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-zinc-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors hover:text-zinc-300"
             >
               Today
             </button>
             <button
               onClick={goForward}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
+              className="flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-300"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
-          <h2 className="text-base font-semibold tracking-tight text-zinc-800">
+          <h2 className="text-sm font-medium tracking-tight text-zinc-100">
             {getDateLabel()}
           </h2>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+        <div className="flex items-center gap-3">
+          {currentUser && (
+            <button
+              onClick={() => setShowRecurring(true)}
+              className="flex items-center gap-1.5 rounded-none bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-zinc-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors hover:text-zinc-300"
+            >
+              <Settings className="h-3 w-3" />
+              Availability
+            </button>
+          )}
+          <div className="flex items-center gap-2 text-[11px] text-zinc-500">
             {currentUser && (
               <div className="flex items-center gap-1.5">
-                <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                <div className="h-1.5 w-1.5 bg-[#8B5CF6]" />
                 <span>Your slots</span>
               </div>
             )}
             <div className="flex items-center gap-1.5">
-              <div className="h-2 w-2 rounded-full bg-zinc-300" />
+              <div className="h-1.5 w-1.5 bg-zinc-600" />
               <span>Available</span>
             </div>
           </div>
-          <div className="flex items-center rounded-lg bg-zinc-100 p-0.5 text-xs">
-            {(['month', 'week', 'day'] as ViewMode[]).map((v) => (
+          <div className="flex items-center rounded-none bg-white/[0.04] p-0.5 text-[11px] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            {(['week', 'day'] as ViewMode[]).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`rounded-md px-3 py-1 font-medium capitalize transition-all ${
+                className={`rounded-none px-2.5 py-1 font-medium capitalize transition-all ${
                   view === v
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-700'
+                    ? 'bg-[#8B5CF6]/20 text-[#8B5CF6]'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 {v}
@@ -294,35 +301,23 @@ export function CalendarGrid() {
         <AnimatePresence mode="wait">
           <motion.div
             key={view}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
             className="pt-4"
           >
-            {view === 'month' ? (
-              <MonthView
-                cursorDate={cursorDate}
-                timeSlots={timeSlots}
-                currentUser={currentUser}
-                onSlotClick={handleSlotClick}
-                onDayClick={(date) => {
-                  setCursorDate(parseISO(date));
-                  setView('day');
-                }}
-                onCellClick={startCreateSlot}
-              />
-            ) : view === 'week' ? (
-              <WeekDayView
+            {view === 'week' ? (
+              <WeekView
                 days={getWeekDays(cursorDate)}
                 hours={hours}
                 timeSlots={timeSlots}
                 currentUser={currentUser}
-                baseHour={baseHour}
                 isInSelection={isInSelection}
                 onCellMouseDown={handleCellMouseDown}
                 onCellMouseOver={handleCellMouseOver}
                 onSlotClick={handleSlotClick}
+                onSlotRightClick={handleSlotRightClick}
                 gridRef={gridRef}
               />
             ) : (
@@ -331,11 +326,11 @@ export function CalendarGrid() {
                 hours={hours}
                 timeSlots={timeSlots}
                 currentUser={currentUser}
-                baseHour={baseHour}
                 isInSelection={isInSelection}
                 onCellMouseDown={handleCellMouseDown}
                 onCellMouseOver={handleCellMouseOver}
                 onSlotClick={handleSlotClick}
+                onSlotRightClick={handleSlotRightClick}
                 gridRef={gridRef}
               />
             )}
@@ -346,135 +341,32 @@ export function CalendarGrid() {
   );
 }
 
-/* ─── Month View ─── */
-function MonthView({
-  cursorDate,
-  timeSlots,
-  currentUser,
-  onSlotClick,
-  onDayClick,
-  onCellClick,
-}: {
-  cursorDate: Date;
-  timeSlots: TimeSlot[];
-  currentUser: { id: string } | null;
-  onSlotClick: (slot: TimeSlot) => void;
-  onDayClick: (date: string) => void;
-  onCellClick: (date: string, hour: number) => void;
-}) {
-  const monthStart = startOfMonth(cursorDate);
-  const monthEnd = endOfMonth(cursorDate);
-  const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
-  const allDays = eachDayOfInterval({ start: calStart, end: calEnd });
-  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-  return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200/60 bg-white shadow-sm">
-      <div className="grid grid-cols-7 border-b border-zinc-100">
-        {dayNames.map((name) => (
-          <div key={name} className="py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-            {name}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7">
-        {allDays.map((day, i) => {
-          const dateStr = day.toISOString();
-          const daySlots = getSlotsForDate(timeSlots, day);
-          const isTodayDay = isToday(day);
-          const inCurrentMonth = isSameMonth(day, cursorDate);
-
-          return (
-            <div
-              key={i}
-              onClick={() => onDayClick(dateStr)}
-              className={`group relative min-h-[110px] border-b border-r border-zinc-100 p-2 transition-colors last:border-r-0 hover:bg-zinc-50/50 ${
-                !inCurrentMonth ? 'bg-zinc-50/50' : ''
-              } ${i % 7 === 6 ? 'border-r-0' : ''}`}
-            >
-              <div className="mb-1.5 flex items-center justify-between">
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                    isTodayDay
-                      ? 'bg-emerald-500 font-semibold text-white'
-                      : inCurrentMonth
-                        ? 'text-zinc-700'
-                        : 'text-zinc-300'
-                  }`}
-                >
-                  {format(day, 'd')}
-                </div>
-                {inCurrentMonth && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onCellClick(dateStr, 9);
-                    }}
-                    className="flex h-5 w-5 items-center justify-center rounded-full text-zinc-300 opacity-0 transition-all hover:bg-zinc-100 hover:text-zinc-500 group-hover:opacity-100"
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-              <div className="space-y-0.5">
-                {daySlots.slice(0, 3).map((slot) => {
-                  const isOwn = slot.userId === currentUser?.id;
-                  const colors = getSlotColor(slot.userId, isOwn);
-                  return (
-                    <button
-                      key={slot.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSlotClick(slot);
-                      }}
-                      className={`flex w-full items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] font-medium transition-all hover:opacity-80 ${
-                        isOwn
-                          ? 'bg-emerald-500 text-white'
-                          : `${colors.bg} ${colors.text}`
-                      }`}
-                    >
-                      <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${colors.dot}`} />
-                      <span className="truncate">{slot.userName}</span>
-                    </button>
-                  );
-                })}
-                {daySlots.length > 3 && (
-                  <div className="px-1.5 text-[10px] font-medium text-zinc-400">
-                    +{daySlots.length - 3} more
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+function getColor(userId: string, isOwn: boolean) {
+  if (isOwn) return { bg: 'bg-[#8B5CF6]/20', text: 'text-[#8B5CF6]', dot: 'bg-[#8B5CF6]' };
+  return { bg: 'bg-white/[0.04]', text: 'text-zinc-400', dot: 'bg-zinc-500' };
 }
 
-/* ─── Week / Day Grid ─── */
-function WeekDayView({
+function WeekView({
   days,
   hours,
   timeSlots,
   currentUser,
-  baseHour,
   isInSelection,
   onCellMouseDown,
   onCellMouseOver,
   onSlotClick,
+  onSlotRightClick,
   gridRef,
 }: {
   days: { date: string; dayName: string; dayNumber: number; isToday: boolean }[];
   hours: string[];
   timeSlots: TimeSlot[];
   currentUser: { id: string } | null;
-  baseHour: number;
   isInSelection: (date: string, hour: number) => boolean;
   onCellMouseDown: (e: React.MouseEvent) => void;
   onCellMouseOver: (e: React.MouseEvent) => void;
   onSlotClick: (slot: TimeSlot) => void;
+  onSlotRightClick: (slot: TimeSlot) => void;
   gridRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const slotsByDay = useMemo(() => {
@@ -486,34 +378,34 @@ function WeekDayView({
   }, [days, timeSlots]);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200/60 bg-white shadow-sm">
+    <div className="overflow-hidden bg-zinc-950">
       <div
         ref={gridRef}
         className="grid select-none"
         style={{
-          gridTemplateColumns: `64px repeat(${days.length}, 1fr)`,
-          gridTemplateRows: `44px repeat(${hours.length}, minmax(52px, 1fr))`,
+          gridTemplateColumns: `56px repeat(${days.length}, 1fr)`,
+          gridTemplateRows: `40px repeat(${HOUR_COUNT}, ${ROW_HEIGHT}px)`,
         }}
         onMouseDown={onCellMouseDown}
         onMouseOver={onCellMouseOver}
       >
-        <div className="border-b border-zinc-100" />
+        <div className="border-b border-white/[0.04]" />
 
         {days.map((day) => (
           <div
             key={day.date}
-            className={`flex flex-col items-center justify-center border-b border-l border-zinc-100 ${
-              day.isToday ? 'bg-emerald-50/50' : ''
+            className={`flex flex-col items-center justify-center border-b border-l border-white/[0.04] ${
+              day.isToday ? 'bg-[#8B5CF6]/[0.02]' : ''
             }`}
           >
-            <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+            <span className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">
               {day.dayName}
             </span>
             <span
-              className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium ${
+              className={`mt-px flex h-6 w-6 items-center justify-center text-xs font-medium ${
                 day.isToday
-                  ? 'bg-emerald-500 font-semibold text-white'
-                  : 'text-zinc-700'
+                  ? 'bg-[#8B5CF6] font-semibold text-white'
+                  : 'text-zinc-100'
               }`}
             >
               {day.dayNumber}
@@ -521,47 +413,68 @@ function WeekDayView({
           </div>
         ))}
 
-        {hours.map((hourLabel, hourIndex) => {
+        {hours.map((hourLabel, hourIndex) => (
+          <div key={hourIndex} className="contents">
+            <div className="relative border-b border-l border-white/[0.04]">
+              <span className="absolute -top-2.5 right-2 text-[10px] font-medium text-zinc-500">
+                {hourLabel}
+              </span>
+            </div>
+
+            {days.map((day) => {
+              const selected = isInSelection(day.date, hourIndex);
+              return (
+                <div
+                  key={`${day.date}-${hourIndex}`}
+                  data-date={day.date}
+                  data-hour={hourIndex}
+                  className={`relative border-b border-l border-white/[0.04] ${
+                    selected
+                      ? 'bg-[#8B5CF6]/10 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.25)]'
+                      : 'hover:bg-white/[0.02]'
+                  } ${day.isToday ? 'bg-[#8B5CF6]/[0.015]' : ''}`}
+                  style={{ height: ROW_HEIGHT }}
+                />
+              );
+            })}
+          </div>
+        ))}
+
+        {days.map((day) => {
+          const daySlots = slotsByDay.get(day.date) || [];
           return (
-            <div key={hourIndex} className="contents">
-              <div className="relative border-b border-l border-zinc-100">
-                <span className="absolute -top-2.5 right-3 text-[11px] font-medium text-zinc-400">
-                  {hourLabel}
-                </span>
-              </div>
-
-              {days.map((day) => {
-                const cellSlots = slotsByDay.get(day.date)?.filter((slot) => {
-                  const slotHour = parseISO(slot.startTime).getHours();
-                  return slotHour === baseHour + hourIndex;
-                }) || [];
-
-                const selected = isInSelection(day.date, hourIndex);
-                const colIndex = days.indexOf(day);
-                const isLastCol = colIndex === days.length - 1;
-
+            <div
+              key={`overlay-${day.date}`}
+              style={{
+                gridColumn: days.indexOf(day) + 2,
+                gridRow: '2 / -1',
+                position: 'relative',
+                pointerEvents: 'none',
+              }}
+            >
+              {daySlots.map((slot) => {
+                const pos = getSlotPosition(slot, BASE_HOUR, ROW_HEIGHT);
+                const isOwn = slot.userId === currentUser?.id;
+                const colors = getColor(slot.userId, isOwn);
                 return (
                   <div
-                    key={`${day.date}-${hourIndex}`}
-                    data-date={day.date}
-                    data-hour={hourIndex}
-                    className={`relative min-h-[52px] border-b border-l border-zinc-100 transition-colors ${
-                      isLastCol ? 'border-r-0' : ''
-                    } ${
-                      selected
-                        ? 'bg-emerald-500/10 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.25)]'
-                        : 'hover:bg-zinc-50/50'
-                    } ${day.isToday ? 'bg-emerald-50/[0.03]' : ''}`}
+                    key={slot.id}
+                    style={{
+                      position: 'absolute',
+                      top: pos.top,
+                      left: 2,
+                      right: 2,
+                      height: pos.height - 4,
+                      pointerEvents: 'auto',
+                    }}
                   >
-                    {cellSlots.map((slot) => (
-                      <SlotBlock
-                        key={slot.id}
-                        slot={slot}
-                        isOwn={slot.userId === currentUser?.id}
-                        onClick={() => onSlotClick(slot)}
-                        userColors={getSlotColor(slot.userId, slot.userId === currentUser?.id)}
-                      />
-                    ))}
+                    <SlotBlock
+                      slot={slot}
+                      isOwn={isOwn}
+                      onClick={() => onSlotClick(slot)}
+                      onContextMenu={() => onSlotRightClick(slot)}
+                      userColors={colors}
+                    />
                   </div>
                 );
               })}
@@ -573,28 +486,27 @@ function WeekDayView({
   );
 }
 
-/* ─── Day View ─── */
 function DayView({
   date,
   hours,
   timeSlots,
   currentUser,
-  baseHour,
   isInSelection,
   onCellMouseDown,
   onCellMouseOver,
   onSlotClick,
+  onSlotRightClick,
   gridRef,
 }: {
   date: Date;
   hours: string[];
   timeSlots: TimeSlot[];
   currentUser: { id: string } | null;
-  baseHour: number;
   isInSelection: (date: string, hour: number) => boolean;
   onCellMouseDown: (e: React.MouseEvent) => void;
   onCellMouseOver: (e: React.MouseEvent) => void;
   onSlotClick: (slot: TimeSlot) => void;
+  onSlotRightClick: (slot: TimeSlot) => void;
   gridRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const dateStr = date.toISOString();
@@ -604,59 +516,87 @@ function DayView({
   const daySlots = getSlotsForDate(timeSlots, date);
 
   return (
-    <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-zinc-200/60 bg-white shadow-sm">
-      <div
-        className={`px-6 py-4 ${isTodayDay ? 'bg-emerald-50/50' : ''}`}
-      >
-        <span
-          className={`text-lg font-semibold tracking-tight ${
-            isTodayDay ? 'text-emerald-700' : 'text-zinc-800'
-          }`}
-        >
+    <div className="mx-auto max-w-3xl overflow-hidden bg-zinc-950">
+      <div className={`px-5 py-3 border-b border-white/[0.04] ${isTodayDay ? 'bg-[#8B5CF6]/[0.015]' : ''}`}>
+        <span className={`text-base font-medium tracking-tight ${isTodayDay ? 'text-[#8B5CF6]' : 'text-zinc-100'}`}>
           {dayName}, <span className="font-normal">{dayNumber}</span>
         </span>
       </div>
+
       <div
         ref={gridRef}
-        className="select-none"
+        className="relative select-none"
         onMouseDown={onCellMouseDown}
         onMouseOver={onCellMouseOver}
       >
-        {hours.map((hourLabel, hourIndex) => {
-          const cellSlots = daySlots.filter((slot) => {
-            const slotHour = parseISO(slot.startTime).getHours();
-            return slotHour === baseHour + hourIndex;
-          });
-          const selected = isInSelection(dateStr, hourIndex);
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '56px 1fr',
+            gridTemplateRows: `repeat(${HOUR_COUNT}, ${ROW_HEIGHT}px)`,
+          }}
+        >
+          {hours.map((hourLabel, hourIndex) => {
+            const selected = isInSelection(dateStr, hourIndex);
+            return (
+              <div key={hourIndex} className="contents">
+                <div className="relative border-b border-r border-white/[0.04]">
+                  <span className="absolute -top-2.5 right-2.5 text-[10px] font-medium text-zinc-500">
+                    {hourLabel}
+                  </span>
+                </div>
+                <div
+                  data-date={dateStr}
+                  data-hour={hourIndex}
+                  className={`relative border-b border-white/[0.04] ${
+                    selected
+                      ? 'bg-[#8B5CF6]/10 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.25)]'
+                      : 'hover:bg-white/[0.02]'
+                  } ${isTodayDay ? 'bg-[#8B5CF6]/[0.015]' : ''}`}
+                  style={{ height: ROW_HEIGHT }}
+                />
+              </div>
+            );
+          })}
+        </div>
 
-          return (
-            <div
-              key={hourIndex}
-              data-date={dateStr}
-              data-hour={hourIndex}
-              className={`flex min-h-[60px] border-b border-zinc-100 transition-colors last:border-b-0 ${
-                selected
-                  ? 'bg-emerald-500/10 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.25)]'
-                  : 'hover:bg-zinc-50/50'
-              }`}
-            >
-              <div className="relative flex w-20 shrink-0 items-start justify-end border-r border-zinc-100 pr-3 pt-3">
-                <span className="text-[11px] font-medium text-zinc-400">{hourLabel}</span>
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 56,
+            right: 0,
+            bottom: 0,
+            pointerEvents: 'none',
+          }}
+        >
+          {daySlots.map((slot) => {
+            const pos = getSlotPosition(slot, BASE_HOUR, ROW_HEIGHT);
+            const isOwn = slot.userId === currentUser?.id;
+            const colors = getColor(slot.userId, isOwn);
+            return (
+              <div
+                key={slot.id}
+                style={{
+                  position: 'absolute',
+                  top: pos.top,
+                  left: 4,
+                  right: 4,
+                  height: pos.height - 4,
+                  pointerEvents: 'auto',
+                }}
+              >
+                <SlotBlock
+                  slot={slot}
+                  isOwn={isOwn}
+                  onClick={() => onSlotClick(slot)}
+                  onContextMenu={() => onSlotRightClick(slot)}
+                  userColors={colors}
+                />
               </div>
-              <div className="relative flex-1 px-3 py-1">
-                {cellSlots.map((slot) => (
-                  <SlotBlock
-                    key={slot.id}
-                    slot={slot}
-                    isOwn={slot.userId === currentUser?.id}
-                    onClick={() => onSlotClick(slot)}
-                    userColors={getSlotColor(slot.userId, slot.userId === currentUser?.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -24,18 +24,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-[100dvh] flex-col">
       {!currentUser && <IdentityDialog />}
-      <header className="sticky top-0 z-40 border-b border-zinc-200/50 bg-white/90 backdrop-blur-md">
-        <nav className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500 text-[10px] font-bold text-white">
+      <header className="sticky top-0 z-40 bg-white/[0.04] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <nav className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-2.5">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2 text-sm font-medium tracking-tight">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500 text-[9px] font-bold text-white">
                 P
               </div>
               {APP_NAME}
             </Link>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname.startsWith(item.href);
@@ -43,28 +43,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                       isActive
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
+                        ? 'bg-emerald-500/10 text-emerald-500'
+                        : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
                     }`}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-3.5 w-3.5" />
                     {item.label}
                   </Link>
                 );
               })}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {isSignedIn || currentUser ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {currentUser && (
-                  <div className="flex items-center gap-2 rounded-lg bg-zinc-50 px-3 py-1.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500 text-[9px] font-bold text-white">
+                  <div className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-500 text-[8px] font-bold text-white">
                       {currentUser.avatar || '?'}
                     </div>
-                    <span className="text-sm font-medium text-zinc-700">
+                    <span className="text-xs font-medium text-muted-foreground">
                       {currentUser.name || 'Anonymous'}
                     </span>
                   </div>
@@ -72,14 +72,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {isSignedIn && <UserButton />}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <SignInButton mode="modal">
-                  <button className="rounded-lg px-4 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
+                  <button className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
                     Sign in
                   </button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <button className="rounded-lg bg-emerald-500 px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-emerald-600 active:scale-[0.98]">
+                  <button className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white transition-all hover:bg-emerald-600 active:scale-[0.98]">
                     Get started
                   </button>
                 </SignUpButton>

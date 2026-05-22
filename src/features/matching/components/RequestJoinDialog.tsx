@@ -64,19 +64,19 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
 
   if (sent) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-        <div className="w-full max-w-sm px-6 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
-            <Check className="h-6 w-6 text-emerald-500" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="w-full max-w-sm rounded-2xl bg-white/[0.06] p-8 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] text-center">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
+            <Check className="h-5 w-5 text-emerald-500" />
           </div>
-          <h2 className="mt-4 text-xl font-medium tracking-tight">You&apos;re in!</h2>
+          <h2 className="mt-3 text-base font-medium text-foreground">You&apos;re in!</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Session with {slot.userName} has been created. Go to Sessions to join.
+            Session with {slot.userName} has been created.
           </p>
-          <div className="mt-6 flex items-center justify-center gap-3">
+          <div className="mt-5 flex items-center justify-center gap-2">
             <button
               onClick={onClose}
-              className="rounded-md bg-muted px-4 py-2.5 text-sm font-medium text-foreground transition-opacity hover:opacity-90"
+              className="rounded-lg bg-white/[0.06] px-4 py-2 text-sm font-medium text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors hover:bg-white/[0.1]"
             >
               Close
             </button>
@@ -87,10 +87,10 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="w-full max-w-md px-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl bg-white/[0.06] p-6 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-medium tracking-tight">Request to join</h2>
+          <h2 className="text-base font-medium text-foreground">Request to join</h2>
           <button
             onClick={onClose}
             className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
@@ -98,14 +98,14 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="mt-6 space-y-4">
-          <div className="flex items-center gap-3 rounded-md bg-muted p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground/10 text-sm font-medium">
+        <div className="mt-4 space-y-4">
+          <div className="flex items-center gap-3 rounded-lg bg-white/[0.03] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.08] text-xs font-medium text-foreground">
               {slot.userAvatar}
             </div>
             <div>
-              <p className="font-medium">{slot.userName}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
+              <p className="text-sm font-medium text-foreground">{slot.userName}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {formatSlotDate(slot.startTime)} &middot;{' '}
                 {formatSlotTime(slot.startTime)} — {formatSlotTime(slot.endTime)}
               </p>
@@ -120,12 +120,12 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Hi! I&apos;d like to work on..."
               rows={3}
-              className="mt-1 w-full resize-none border-0 border-b border-transparent bg-transparent pb-1 text-sm outline-none ring-0 placeholder:text-muted-foreground/40 focus:border-b focus:border-emerald-500"
+              className="mt-1 w-full resize-none rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] outline-none placeholder:text-muted-foreground/40 focus-visible:shadow-[inset_0_0_0_1px_#10b981]"
             />
           </div>
           <button
             onClick={handleRequest}
-            className="mt-4 w-full rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-emerald-600 active:scale-[0.98]"
           >
             Send request
           </button>

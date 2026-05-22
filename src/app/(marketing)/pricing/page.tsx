@@ -8,7 +8,7 @@ export default function PricingPage() {
     {
       name: 'Free',
       price: '$0',
-      description: 'Get started with core features.',
+      description: 'Core features.',
       features: [
         'Weekly calendar view',
         'Create time slots',
@@ -23,7 +23,7 @@ export default function PricingPage() {
       name: 'Pro',
       price: '$12',
       period: '/month',
-      description: 'For power users who want more control.',
+      description: 'For power users.',
       features: [
         'Everything in Free',
         'Unlimited monthly sessions',
@@ -40,7 +40,7 @@ export default function PricingPage() {
       name: 'Team',
       price: '$29',
       period: '/month',
-      description: 'For teams that want to focus together.',
+      description: 'For teams.',
       features: [
         'Everything in Pro',
         'Team workspaces',
@@ -56,49 +56,49 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="py-24">
+    <div className="py-20">
       <div className="mx-auto max-w-6xl px-6 text-center">
-        <h1 className="text-4xl font-medium tracking-tight">Pricing</h1>
-        <p className="mt-3 text-lg text-muted-foreground">
-          Simple pricing. No hidden fees. No borders.
+        <h1 className="text-2xl font-medium tracking-tight">Pricing</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Simple pricing. No hidden fees.
         </p>
       </div>
-      <div className="mx-auto mt-16 grid max-w-5xl gap-6 px-6 md:grid-cols-3">
+      <div className="mx-auto mt-10 grid max-w-5xl gap-4 px-6 md:grid-cols-3">
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`rounded-md p-6 ${
+            className={`rounded-xl p-5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${
               plan.featured
-                ? 'bg-foreground text-background'
-                : 'bg-muted text-foreground'
+                ? 'bg-emerald-500/10'
+                : 'bg-white/[0.03]'
             }`}
           >
-            <h2 className="text-lg font-medium">{plan.name}</h2>
-            <p className="mt-1 text-muted-foreground text-sm">
+            <h2 className="text-sm font-medium text-foreground">{plan.name}</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
               {plan.description}
             </p>
-            <div className="mt-4 flex items-baseline gap-1">
-              <span className="text-3xl font-semibold">{plan.price}</span>
+            <div className="mt-3 flex items-baseline gap-1">
+              <span className="text-2xl font-semibold text-foreground">{plan.price}</span>
               {plan.period && (
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {plan.period}
                 </span>
               )}
             </div>
-            <ul className="mt-6 space-y-3">
+            <ul className="mt-5 space-y-2">
               {plan.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                <li key={feature} className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
                   {feature}
                 </li>
               ))}
             </ul>
             <Link
               href={plan.href}
-              className={`mt-8 flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 ${
+              className={`mt-6 flex items-center justify-center rounded-lg px-4 py-2 text-xs font-medium transition-all active:scale-[0.98] ${
                 plan.featured
-                  ? 'bg-background text-foreground'
-                  : 'bg-foreground text-background'
+                  ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                  : 'bg-white/[0.06] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.1]'
               }`}
             >
               {plan.cta}
