@@ -30,9 +30,9 @@ export function Footer() {
             <Link href="/contact" className={footer.link}>Contact</Link>
             <Link href="/terms" className={footer.link}>Terms of Service</Link>
             <Link href="/privacy" className={footer.link}>Privacy Policy</Link>
-            <Link href="/" className={footer.link}>Blog</Link>
-            <Link href="/" className={footer.link}>Careers</Link>
-            <Link href="/" className={footer.link}>Support</Link>
+            <Link href="/blog" className={footer.link}>Blog</Link>
+            <Link href="/careers" className={footer.link}>Careers</Link>
+            <Link href="/support" className={footer.link}>Support</Link>
           </div>
           <div className="flex items-end justify-between gap-6 md:flex-col md:items-end">
             <div className={footer.social}>

@@ -3,11 +3,18 @@
 import { problem } from './ProblemSection.styles';
 import { useProblemReveal } from './ProblemSection.hooks';
 
+const BG_IMAGE =
+  'https://images.unsplash.com/photo-1568992688065-536aad8a12f6?q=85&w=2400';
+
 export function ProblemSection() {
   const { ref, pageRef } = useProblemReveal();
 
   return (
     <section ref={ref} className={problem.section}>
+      <div
+        className={problem.bgImage}
+        style={{ backgroundImage: `url(${BG_IMAGE})` }}
+      />
       <div ref={pageRef} className={problem.pageBg}>
         <div className={problem.pageBgInner} />
       </div>
