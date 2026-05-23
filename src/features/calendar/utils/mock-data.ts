@@ -18,11 +18,13 @@ export function generateMockSlots(): TimeSlot[] {
       const start = setMinutes(setHours(date, hourOffset), 0);
       const end = addHours(start, 1 + Math.floor(Math.random() * 2));
 
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=CB6CE6&color=fff&size=100`;
       slots.push({
         id: `mock-slot-${slotCounter++}`,
         userId: user.id,
         userName: user.name,
         userAvatar: user.avatar,
+        userImage: avatarUrl,
         startTime: start.toISOString(),
         endTime: end.toISOString(),
         status: 'available',

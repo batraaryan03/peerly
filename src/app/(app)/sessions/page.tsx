@@ -23,7 +23,7 @@ export default function SessionsPage() {
   if (!currentUser) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-12">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-zinc-500">
           Set up your profile to see sessions.
         </p>
       </div>
@@ -60,6 +60,7 @@ export default function SessionsPage() {
       userId: isHost ? session.hostId : session.participantId,
       userName: session.hostName,
       userAvatar: session.hostAvatar,
+      userImage: '',
       startTime: session.startTime,
       endTime: session.endTime,
       status: 'booked',
@@ -70,14 +71,14 @@ export default function SessionsPage() {
       : { name: session.hostName, avatar: session.hostAvatar };
 
     return (
-      <div className="flex items-center justify-between bg-[rgba(203,108,230,0.04)] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+      <div className="flex items-center justify-between bg-white p-3.5 border border-[#CB6CE6]/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_2px_8px_rgba(203,108,230,0.06)]">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center text-[10px] font-bold text-zinc-300 bg-[rgba(203,108,230,0.12)]">
+          <div className="flex h-9 w-9 items-center justify-center text-[10px] font-bold text-zinc-600 bg-[#CB6CE6]/10">
             {partner.avatar}
           </div>
           <div>
-            <p className="text-sm font-medium text-zinc-100">{partner.name}</p>
-            <p className="text-xs text-zinc-500">
+            <p className="text-sm font-medium text-zinc-800">{partner.name}</p>
+            <p className="text-xs text-zinc-400">
               {formatSlotDate(session.startTime)} &middot;{' '}
               {formatSlotTime(session.startTime)} &mdash;{' '}
               {formatSlotTime(session.endTime)}
@@ -95,7 +96,7 @@ export default function SessionsPage() {
             </Link>
           )}
           {session.status === 'approved' && past && (
-            <span className="text-xs text-zinc-500">Completed</span>
+            <span className="text-xs text-zinc-400">Completed</span>
           )}
           {session.status === 'pending' && isHost && (
             <div className="flex items-center gap-1">
@@ -107,14 +108,14 @@ export default function SessionsPage() {
               </button>
               <button
                 onClick={() => handleReject(session.id)}
-                className="p-1.5 text-zinc-500 bg-[rgba(203,108,230,0.06)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all hover:bg-[rgba(203,108,230,0.12)] hover:text-zinc-200 active:scale-[0.98]"
+                className="p-1.5 text-zinc-400 bg-white border border-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all hover:bg-zinc-50 hover:text-zinc-600 active:scale-[0.98]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
           {session.status === 'pending' && !isHost && (
-            <span className="flex items-center gap-1 text-xs text-zinc-500">
+            <span className="flex items-center gap-1 text-xs text-zinc-400">
               <Clock className="h-3 w-3" />
               Awaiting approval
             </span>
@@ -125,14 +126,14 @@ export default function SessionsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8">
-      <h1 className="text-base font-semibold tracking-tight text-zinc-100">Sessions</h1>
+    <div className="mx-auto w-full max-w-3xl px-6 py-8 bg-white">
+      <h1 className="text-base font-semibold tracking-tight text-zinc-800">Sessions</h1>
 
       {incomingRequests.length > 0 && (
         <section className="mt-6">
           <div className="flex items-center gap-2">
             <Inbox className="h-3.5 w-3.5 text-[#CB6CE6]" />
-            <h2 className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest">
+            <h2 className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
               Incoming requests ({incomingRequests.length})
             </h2>
           </div>
@@ -147,7 +148,7 @@ export default function SessionsPage() {
       )}
 
       <section className="mt-6">
-        <h2 className="text-[11px] font-medium text-zinc-500 uppercase tracking-widest">
+        <h2 className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
           Upcoming ({hosted.filter((s) => s.status !== 'cancelled').length + participating.filter((s) => s.status !== 'cancelled').length})
         </h2>
         <div className="mt-3 flex flex-col gap-2">
@@ -162,9 +163,9 @@ export default function SessionsPage() {
               />
             ))}
           {[...hosted, ...participating].filter((s) => s.status !== 'cancelled').length === 0 && (
-            <div className="flex flex-col items-center justify-center border border-[rgba(203,108,230,0.12)] bg-[rgba(203,108,230,0.03)] px-6 py-16 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
+            <div className="flex flex-col items-center justify-center border border-[#CB6CE6]/10 bg-white px-6 py-16 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
               <p className="text-sm font-medium text-zinc-400">No upcoming sessions</p>
-              <p className="mt-1.5 text-xs text-zinc-600">
+              <p className="mt-1.5 text-xs text-zinc-400">
                 Find someone on the calendar and request to join.
               </p>
             </div>

@@ -5,6 +5,7 @@ export interface User {
   name: string;
   email: string;
   avatar: string;
+  imageUrl: string;
   bio: string;
   rating: number;
   ratingCount: number;
@@ -19,6 +20,7 @@ export interface TimeSlot {
   userId: string;
   userName: string;
   userAvatar: string;
+  userImage: string;
   startTime: string;
   endTime: string;
   status: SlotStatus;
@@ -79,6 +81,28 @@ export interface WeekDay {
   dayName: string;
   dayNumber: number;
   isToday: boolean;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  userImage: string;
+  peerCount: number;
+  status: string;
+  isOwn: boolean;
+  peers: TooltipItem[];
+}
+
+export interface TooltipItem {
+  id: number;
+  name: string;
+  designation: string;
+  image: string;
 }
 
 export interface RecurringRule {

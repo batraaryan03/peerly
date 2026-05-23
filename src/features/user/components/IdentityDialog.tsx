@@ -35,6 +35,7 @@ export function IdentityDialog() {
         .join('')
         .slice(0, 2)
         .toUpperCase(),
+      imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name.trim())}&background=CB6CE6&color=fff&size=100`,
       bio: 'Ready to focus.',
       rating: 0,
       ratingCount: 0,

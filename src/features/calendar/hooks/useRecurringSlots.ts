@@ -48,11 +48,13 @@ export function useRecurringSlots(days: { date: string }[]) {
         });
 
         if (!hasOverlap) {
+          const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=CB6CE6&color=fff&size=100`;
           addTimeSlot({
             id: generateSlotId(),
             userId: currentUser.id,
             userName: currentUser.name,
             userAvatar: currentUser.avatar,
+            userImage: avatarUrl,
             startTime: slotStart.toISOString(),
             endTime: slotEnd.toISOString(),
             status: 'available',
