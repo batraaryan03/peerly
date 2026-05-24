@@ -1,12 +1,21 @@
+.calendar-wrapper {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 .calendar-wrapper .rbc-calendar {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: #18181b;
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .calendar-wrapper .rbc-month-view {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.55);
   border: none;
   border-top: 1px solid rgba(203, 108, 230, 0.06);
   display: flex;
@@ -16,7 +25,7 @@
 }
 
 .calendar-wrapper .rbc-time-view {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.55);
   border: none;
   border-top: 1px solid rgba(203, 108, 230, 0.06);
 }
@@ -134,11 +143,11 @@
 }
 
 .calendar-wrapper .rbc-time-gutter {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .calendar-wrapper .rbc-today {
-  background: rgba(203, 108, 230, 0.025);
+  background: rgba(203, 108, 230, 0.04);
 }
 
 .calendar-wrapper .rbc-now {

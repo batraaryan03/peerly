@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useMatchingStore } from '@/features/matching/store/matching.store';
 import { useUserStore } from '@/features/user/store/user.store';
 import { useCalendarStore } from '@/features/calendar/store/calendar.store';
@@ -16,9 +17,14 @@ export default function SessionsPage() {
   const currentUser = useUserStore((s) => s.currentUser);
   const sessions = useMatchingStore((s) => s.sessions);
   const requests = useMatchingStore((s) => s.requests);
+  const fetchSessions = useMatchingStore((s) => s.fetchSessions);
   const updateSessionStatus = useMatchingStore((s) => s.updateSessionStatus);
   const updateRequestStatus = useMatchingStore((s) => s.updateRequestStatus);
   const updateSlotStatus = useCalendarStore((s) => s.updateSlotStatus);
+
+  useEffect(() => {
+    if (currentUser) fetchSessions(currentUser.id);
+  }, [currentUser, fetchSessions]);
 
   if (!currentUser) {
     return (
@@ -63,6 +69,7 @@ export default function SessionsPage() {
       userImage: '',
       startTime: session.startTime,
       endTime: session.endTime,
+      date: session.startTime.slice(0, 10),
       status: 'booked',
       createdAt: session.createdAt,
     });

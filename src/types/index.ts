@@ -23,6 +23,7 @@ export interface TimeSlot {
   userImage: string;
   startTime: string;
   endTime: string;
+  date: string;
   status: SlotStatus;
   createdAt: number;
 }

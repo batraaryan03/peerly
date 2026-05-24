@@ -1,4 +1,5 @@
-import { getTurso } from '@/lib/turso';
+import { getDb } from '@/db/client';
+import { users } from '@/db/schema';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    const turso = getTurso();
+    const db = getDb();
 
     const avatar = name
       ?.split(' ')
@@ -21,15 +22,21 @@ export async function POST(request: NextRequest) {
       .slice(0, 2)
       .toUpperCase() || '?';
 
-    await turso.execute({
-      sql: `INSERT INTO users (id, name, email, avatar, image_url, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET
-              name = excluded.name,
-              email = excluded.email,
-              avatar = excluded.avatar,
-              image_url = excluded.image_url`,
-      args: [id, name || '', email || '', avatar, imageUrl || '', Date.now()],
+    await db.insert(users).values({
+      id,
+      name: name || '',
+      email: email || '',
+      avatar,
+      imageUrl: imageUrl || '',
+      createdAt: Date.now(),
+    }).onConflictDoUpdate({
+      target: users.id,
+      set: {
+        name: name || '',
+        email: email || '',
+        avatar,
+        imageUrl: imageUrl || '',
+      },
     });
 
     return NextResponse.json({ success: true });

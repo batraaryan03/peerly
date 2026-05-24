@@ -1,44 +1,67 @@
-import { getTurso } from '@/lib/turso';
+import { getDb } from '@/db/client';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
 export async function POST() {
   try {
-    const turso = getTurso();
+    const db = getDb();
 
-    await turso.execute(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL DEFAULT '',
-        email TEXT NOT NULL DEFAULT '',
-        avatar TEXT DEFAULT '',
-        image_url TEXT DEFAULT '',
-        created_at INTEGER NOT NULL DEFAULT 0
-      )
-    `);
+    await db.run(`CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '',
+      avatar TEXT DEFAULT '', image_url TEXT DEFAULT '', created_at INTEGER NOT NULL DEFAULT 0,
+      last_seen_at INTEGER DEFAULT 0)`);
 
-    await turso.execute(`
-      CREATE TABLE IF NOT EXISTS time_slots (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        user_name TEXT NOT NULL DEFAULT '',
-        user_avatar TEXT DEFAULT '',
-        user_image TEXT DEFAULT '',
-        start_time TEXT NOT NULL,
-        end_time TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'available',
-        created_at INTEGER NOT NULL DEFAULT 0
-      )
-    `);
+    await db.run(`CREATE TABLE IF NOT EXISTS time_slots (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, user_name TEXT NOT NULL DEFAULT '',
+      user_avatar TEXT DEFAULT '', user_image TEXT DEFAULT '', start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL, date TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'available',
+      created_at INTEGER NOT NULL DEFAULT 0)`);
 
-    await turso.execute(`CREATE INDEX IF NOT EXISTS idx_time_slots_user_id ON time_slots(user_id)`);
-    await turso.execute(`CREATE INDEX IF NOT EXISTS idx_time_slots_start_time ON time_slots(start_time)`);
-    await turso.execute(`CREATE INDEX IF NOT EXISTS idx_time_slots_status ON time_slots(status)`);
+    await db.run(`CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY, time_slot_id TEXT NOT NULL, host_id TEXT NOT NULL, participant_id TEXT,
+      start_time TEXT NOT NULL, end_time TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
+      room_name TEXT DEFAULT '', created_at INTEGER NOT NULL DEFAULT 0,
+      updated_at INTEGER NOT NULL DEFAULT 0)`);
+
+    await db.run(`CREATE TABLE IF NOT EXISTS session_requests (
+      id TEXT PRIMARY KEY, slot_id TEXT NOT NULL, requester_id TEXT NOT NULL,
+      message TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'pending',
+      created_at INTEGER NOT NULL DEFAULT 0)`);
+
+    await db.run(`CREATE TABLE IF NOT EXISTS groups (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT '',
+      avatar_url TEXT DEFAULT '', created_by TEXT NOT NULL,
+      created_at INTEGER NOT NULL DEFAULT 0)`);
+
+    await db.run(`CREATE TABLE IF NOT EXISTS group_members (
+      group_id TEXT NOT NULL, user_id TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'member',
+      joined_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (group_id, user_id))`);
+
+    await db.run(`CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY, sender_id TEXT NOT NULL, receiver_id TEXT, group_id TEXT,
+      content TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL DEFAULT 0)`);
+
+    await db.run(`CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'info',
+      title TEXT NOT NULL DEFAULT '', body TEXT DEFAULT '', link TEXT DEFAULT '',
+      is_read INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL DEFAULT 0)`);
+
+    for (const sql of [
+      'CREATE INDEX IF NOT EXISTS idx_slots_user_id ON time_slots(user_id)',
+      'CREATE INDEX IF NOT EXISTS idx_slots_date ON time_slots(date)',
+      'CREATE INDEX IF NOT EXISTS idx_slots_status ON time_slots(status)',
+      'CREATE INDEX IF NOT EXISTS idx_slots_start_end ON time_slots(start_time, end_time)',
+      'CREATE INDEX IF NOT EXISTS idx_messages_group ON messages(group_id, created_at)',
+      'CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id, created_at)',
+      'CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read, created_at)',
+    ]) {
+      await db.run(sql);
+    }
 
     return NextResponse.json({ success: true, message: 'Database initialized' });
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error('DB init error:', error);
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }

@@ -1,95 +1,64 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { TimeSlot } from '@/types';
 
 interface CalendarState {
   timeSlots: TimeSlot[];
-  selectedDate: string;
-  view: 'week' | 'day';
-  addTimeSlot: (slot: TimeSlot) => Promise<void>;
+  loading: boolean;
+  error: string | null;
   addTimeSlots: (slots: TimeSlot[]) => Promise<void>;
   removeTimeSlot: (id: string) => Promise<void>;
   updateSlotStatus: (id: string, status: TimeSlot['status']) => Promise<void>;
-  setSelectedDate: (date: string) => void;
-  setView: (view: 'week' | 'day') => void;
-  fetchTimeSlots: (userId: string) => Promise<void>;
+  fetchTimeSlots: (startDate: string, endDate: string) => Promise<void>;
 }
 
-async function apiCall(endpoint: string, options?: RequestInit) {
+async function api(endpoint: string, options?: RequestInit) {
   const res = await fetch(endpoint, options);
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    const message = body || res.statusText || `HTTP ${res.status}`;
-    throw new Error(`API error: ${message}`);
+    throw new Error(`API: ${body || res.statusText || res.status}`);
   }
   return res.json();
 }
 
-export const useCalendarStore = create<CalendarState>()(
-  persist(
-    (set) => ({
-      timeSlots: [],
-      selectedDate: new Date().toISOString(),
-      view: 'week',
-      addTimeSlot: async (slot) => {
-        set((state) => ({ timeSlots: [...state.timeSlots, slot] }));
-        try {
-          await apiCall('/api/time-slots', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(slot),
-          });
-        } catch (error) {
-          console.error('Failed to save time slot:', error);
-        }
-      },
-      addTimeSlots: async (slots) => {
-        set((state) => ({ timeSlots: [...state.timeSlots, ...slots] }));
-        try {
-          await apiCall('/api/time-slots', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(slots),
-          });
-        } catch (error) {
-          console.error('Failed to save time slots:', error);
-        }
-      },
-      removeTimeSlot: async (id) => {
-        set((state) => ({ timeSlots: state.timeSlots.filter((s) => s.id !== id) }));
-        try {
-          await apiCall(`/api/time-slots/${id}`, { method: 'DELETE' });
-        } catch (error) {
-          console.error('Failed to delete time slot:', error);
-        }
-      },
-      updateSlotStatus: async (id, status) => {
-        set((state) => ({
-          timeSlots: state.timeSlots.map((s) =>
-            s.id === id ? { ...s, status } : s,
-          ),
-        }));
-        try {
-          await apiCall(`/api/time-slots/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status }),
-          });
-        } catch (error) {
-          console.error('Failed to update time slot:', error);
-        }
-      },
-      setSelectedDate: (date) => set({ selectedDate: date }),
-      setView: (view) => set({ view }),
-      fetchTimeSlots: async (userId) => {
-        try {
-          const data = await apiCall(`/api/time-slots?userId=${userId}`);
-          set({ timeSlots: data.timeSlots || [] });
-        } catch (error) {
-          console.error('Failed to fetch time slots:', error);
-        }
-      },
-    }),
-    { name: 'peerly-calendar' },
-  ),
-);
+export const useCalendarStore = create<CalendarState>()((set) => ({
+  timeSlots: [],
+  loading: false,
+  error: null,
+
+  fetchTimeSlots: async (startDate, endDate) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await api(`/api/time-slots?start=${startDate}&end=${endDate}`);
+      set({ timeSlots: data.timeSlots || [], loading: false });
+    } catch (e) {
+      set({ loading: false, error: (e as Error).message });
+    }
+  },
+
+  addTimeSlots: async (slots) => {
+    set((s) => ({ timeSlots: [...s.timeSlots, ...slots] }));
+    try {
+      await api('/api/time-slots', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(slots) });
+    } catch (e) {
+      console.error('Failed to save slots:', e);
+    }
+  },
+
+  removeTimeSlot: async (id) => {
+    set((s) => ({ timeSlots: s.timeSlots.filter((x) => x.id !== id) }));
+    try {
+      await api(`/api/time-slots/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      console.error('Failed to delete slot:', e);
+    }
+  },
+
+  updateSlotStatus: async (id, status) => {
+    set((s) => ({ timeSlots: s.timeSlots.map((x) => (x.id === id ? { ...x, status } : x)) }));
+    try {
+      await api(`/api/time-slots/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    } catch (e) {
+      console.error('Failed to update slot:', e);
+    }
+  },
+}));
