@@ -1,24 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useUserStore } from '@/features/user/store/user.store';
-import { useCalendarStore } from '@/features/calendar/store/calendar.store';
 import type { User } from '@/types';
-import { generateMockSlots } from '@/features/calendar/utils/mock-data';
 
 export function IdentityDialog() {
   const { currentUser, setCurrentUser } = useUserStore();
-  const seedSlots = useCalendarStore((s) => s.seedSlots);
-  const timeSlots = useCalendarStore((s) => s.timeSlots);
   const [name, setName] = useState('');
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    if (timeSlots.length === 0) {
-      const mockSlots = generateMockSlots();
-      seedSlots(mockSlots);
-    }
-  }, [timeSlots.length, seedSlots]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +33,11 @@ export function IdentityDialog() {
     };
 
     setCurrentUser(newUser);
+    fetch('/api/users/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUser),
+    }).catch(() => {});
     setSubmitted(true);
   };
 

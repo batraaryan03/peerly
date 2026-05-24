@@ -7,11 +7,11 @@ interface CalendarState {
   selectedDate: string;
   view: 'week' | 'day';
   addTimeSlot: (slot: TimeSlot) => Promise<void>;
+  addTimeSlots: (slots: TimeSlot[]) => Promise<void>;
   removeTimeSlot: (id: string) => Promise<void>;
   updateSlotStatus: (id: string, status: TimeSlot['status']) => Promise<void>;
   setSelectedDate: (date: string) => void;
   setView: (view: 'week' | 'day') => void;
-  seedSlots: (slots: TimeSlot[]) => void;
   fetchTimeSlots: (userId: string) => Promise<void>;
 }
 
@@ -43,6 +43,18 @@ export const useCalendarStore = create<CalendarState>()(
           console.error('Failed to save time slot:', error);
         }
       },
+      addTimeSlots: async (slots) => {
+        set((state) => ({ timeSlots: [...state.timeSlots, ...slots] }));
+        try {
+          await apiCall('/api/time-slots', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(slots),
+          });
+        } catch (error) {
+          console.error('Failed to save time slots:', error);
+        }
+      },
       removeTimeSlot: async (id) => {
         set((state) => ({ timeSlots: state.timeSlots.filter((s) => s.id !== id) }));
         try {
@@ -69,7 +81,6 @@ export const useCalendarStore = create<CalendarState>()(
       },
       setSelectedDate: (date) => set({ selectedDate: date }),
       setView: (view) => set({ view }),
-      seedSlots: (slots) => set({ timeSlots: slots }),
       fetchTimeSlots: async (userId) => {
         try {
           const data = await apiCall(`/api/time-slots?userId=${userId}`);

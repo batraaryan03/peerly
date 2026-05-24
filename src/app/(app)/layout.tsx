@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useUserStore } from '@/features/user/store/user.store';
 import { IdentityDialog } from '@/features/user/components/IdentityDialog';
@@ -10,39 +10,45 @@ import type { User } from '@/types';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { currentUser, setCurrentUser } = useUserStore();
   const { isSignedIn, user: clerkUser } = useUser();
+  const synced = useRef(false);
 
   useEffect(() => {
     fetch('/api/db/init', { method: 'POST' }).catch(() => {});
 
-    if (isSignedIn && clerkUser) {
-      const existing = currentUser;
+    if (isSignedIn && clerkUser && !synced.current) {
       const clerkId = clerkUser.id;
       const clerkName = clerkUser.fullName || 'User';
       const clerkEmail = clerkUser.primaryEmailAddress?.emailAddress || '';
       const clerkImage = clerkUser.imageUrl;
 
-      if (!existing || existing.id.startsWith('user-')) {
-        const syncedUser: User = {
-          id: clerkId,
-          name: clerkName,
-          email: clerkEmail,
-          avatar: clerkName
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .slice(0, 2)
-            .toUpperCase(),
-          imageUrl: clerkImage,
-          bio: '',
-          rating: 0,
-          ratingCount: 0,
-          status: 'available',
-          createdAt: Date.now(),
-        };
-        setCurrentUser(syncedUser);
-      }
+      synced.current = true;
+
+      fetch('/api/users/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: clerkId, name: clerkName, email: clerkEmail, imageUrl: clerkImage }),
+      }).catch(() => {});
+
+      const syncedUser: User = {
+        id: clerkId,
+        name: clerkName,
+        email: clerkEmail,
+        avatar: clerkName
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase(),
+        imageUrl: clerkImage,
+        bio: '',
+        rating: 0,
+        ratingCount: 0,
+        status: 'available',
+        createdAt: Date.now(),
+      };
+      setCurrentUser(syncedUser);
     }
-  }, [isSignedIn, clerkUser, currentUser, setCurrentUser]);
+  }, [isSignedIn, clerkUser, setCurrentUser]);
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-white">

@@ -8,6 +8,17 @@ export async function POST() {
     const turso = getTurso();
 
     await turso.execute(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL DEFAULT '',
+        email TEXT NOT NULL DEFAULT '',
+        avatar TEXT DEFAULT '',
+        image_url TEXT DEFAULT '',
+        created_at INTEGER NOT NULL DEFAULT 0
+      )
+    `);
+
+    await turso.execute(`
       CREATE TABLE IF NOT EXISTS time_slots (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,

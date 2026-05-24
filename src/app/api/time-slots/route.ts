@@ -40,26 +40,32 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: TimeSlot = await request.json();
-
+    const body = await request.json();
     const turso = getTurso();
-    await turso.execute({
-      sql: `INSERT INTO time_slots (id, user_id, user_name, user_avatar, user_image, start_time, end_time, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [
-        body.id,
-        body.userId,
-        body.userName,
-        body.userAvatar || null,
-        body.userImage || null,
-        body.startTime,
-        body.endTime,
-        body.status || 'available',
-        body.createdAt || Date.now(),
-      ],
-    });
 
-    return NextResponse.json({ success: true, slot: body });
+    const slots: TimeSlot[] = Array.isArray(body) ? body : [body];
+
+    const stmt = `INSERT INTO time_slots (id, user_id, user_name, user_avatar, user_image, start_time, end_time, status, created_at)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    for (const slot of slots) {
+      await turso.execute({
+        sql: stmt,
+        args: [
+          slot.id,
+          slot.userId,
+          slot.userName,
+          slot.userAvatar || null,
+          slot.userImage || null,
+          slot.startTime,
+          slot.endTime,
+          slot.status || 'available',
+          slot.createdAt || Date.now(),
+        ],
+      });
+    }
+
+    return NextResponse.json({ success: true, count: slots.length });
   } catch (error) {
     console.error('Error creating time slot:', error);
     return NextResponse.json({ error: 'Failed to create' }, { status: 500 });

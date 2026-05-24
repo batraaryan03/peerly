@@ -187,7 +187,7 @@ function createHourSlots(
   end: Date,
   userId: string,
   currentUser: { name?: string; avatar?: string; id: string } | null,
-  addTimeSlot: (slot: TimeSlot) => void,
+  addTimeSlots: (slots: TimeSlot[]) => void,
   timeSlots: TimeSlot[],
 ) {
   const snappedStart = snapToHour(start);
@@ -197,6 +197,7 @@ function createHourSlots(
   const hourStart = snappedStart.getHours();
   const hourEnd = snappedEnd.getHours();
   const totalHours = hourEnd - hourStart;
+  const newSlots: TimeSlot[] = [];
 
   for (let i = 0; i < totalHours; i++) {
     const slotStart = new Date(snappedStart);
@@ -208,7 +209,7 @@ function createHourSlots(
 
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'You')}&background=CB6CE6&color=fff&size=100`;
 
-    const newSlot: TimeSlot = {
+    newSlots.push({
       id: generateSlotId(),
       userId,
       userName: currentUser?.name || 'You',
@@ -218,13 +219,16 @@ function createHourSlots(
       endTime: slotEnd.toISOString(),
       status: 'available',
       createdAt: Date.now(),
-    };
-    addTimeSlot(newSlot);
+    });
+  }
+
+  if (newSlots.length > 0) {
+    addTimeSlots(newSlots);
   }
 }
 
 export default function CalendarPage() {
-  const { timeSlots, addTimeSlot, removeTimeSlot, updateSlotStatus, fetchTimeSlots } = useCalendarStore();
+  const { timeSlots, addTimeSlot, addTimeSlots, removeTimeSlot, updateSlotStatus, fetchTimeSlots } = useCalendarStore();
   const { currentUser } = useUserStore();
 
   const [date, setDate] = useState(new Date());
@@ -254,9 +258,9 @@ export default function CalendarPage() {
         setTimePrompt({ start, end });
         return;
       }
-      createHourSlots(start, end, userId, currentUser, addTimeSlot, timeSlots);
+      createHourSlots(start, end, userId, currentUser, addTimeSlots, timeSlots);
     },
-    [addTimeSlot, userId, currentUser, view, timeSlots],
+    [addTimeSlots, userId, currentUser, view, timeSlots],
   );
 
   const handleEventDrop = useCallback(
