@@ -224,7 +224,7 @@ function createHourSlots(
 }
 
 export default function CalendarPage() {
-  const { timeSlots, addTimeSlot, removeTimeSlot, updateSlotStatus } = useCalendarStore();
+  const { timeSlots, addTimeSlot, removeTimeSlot, updateSlotStatus, fetchTimeSlots } = useCalendarStore();
   const { currentUser } = useUserStore();
 
   const [date, setDate] = useState(new Date());
@@ -236,6 +236,10 @@ export default function CalendarPage() {
   } | null>(null);
 
   const userId = currentUser?.id || 'user-1';
+
+  useEffect(() => {
+    fetchTimeSlots(userId);
+  }, [fetchTimeSlots, userId]);
 
   const events = useMemo<CalendarEvent[]>(() => {
     if (timeSlots.length === 0) return [];

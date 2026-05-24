@@ -1,6 +1,8 @@
-import { turso } from '@/lib/turso';
+import { getTurso } from '@/lib/turso';
 import { NextRequest, NextResponse } from 'next/server';
 import type { TimeSlot } from '@/types';
+
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,6 +13,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const turso = getTurso();
     const result = await turso.execute({
       sql: 'SELECT * FROM time_slots WHERE user_id = ? AND status != ?',
       args: [userId, 'cancelled'],
@@ -24,7 +27,7 @@ export async function GET(request: NextRequest) {
       userImage: String(row.user_image || ''),
       startTime: String(row.start_time),
       endTime: String(row.end_time),
-      status: row.status as TimeSlot['status'],
+      status: (row.status as TimeSlot['status']) || 'available',
       createdAt: Number(row.created_at),
     }));
 
@@ -39,6 +42,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: TimeSlot = await request.json();
 
+    const turso = getTurso();
     await turso.execute({
       sql: `INSERT INTO time_slots (id, user_id, user_name, user_avatar, user_image, start_time, end_time, status, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -46,12 +50,12 @@ export async function POST(request: NextRequest) {
         body.id,
         body.userId,
         body.userName,
-        body.userAvatar,
-        body.userImage,
+        body.userAvatar || null,
+        body.userImage || null,
         body.startTime,
         body.endTime,
-        body.status,
-        body.createdAt,
+        body.status || 'available',
+        body.createdAt || Date.now(),
       ],
     });
 

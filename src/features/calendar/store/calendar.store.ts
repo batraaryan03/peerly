@@ -15,11 +15,12 @@ interface CalendarState {
   fetchTimeSlots: (userId: string) => Promise<void>;
 }
 
-// Helper to call API
 async function apiCall(endpoint: string, options?: RequestInit) {
   const res = await fetch(endpoint, options);
   if (!res.ok) {
-    throw new Error(`API error: ${res.statusText}`);
+    const body = await res.text().catch(() => '');
+    const message = body || res.statusText || `HTTP ${res.status}`;
+    throw new Error(`API error: ${message}`);
   }
   return res.json();
 }

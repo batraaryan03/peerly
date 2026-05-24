@@ -1,9 +1,12 @@
-import { turso } from '@/lib/turso';
+import { getTurso } from '@/lib/turso';
 import { NextRequest, NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const turso = getTurso();
 
     await turso.execute({
       sql: 'DELETE FROM time_slots WHERE id = ?',
@@ -21,6 +24,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const { id } = await params;
     const body = await request.json();
+    const turso = getTurso();
 
     await turso.execute({
       sql: 'UPDATE time_slots SET status = ? WHERE id = ?',
