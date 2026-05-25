@@ -113,4 +113,35 @@ ratings          -- id, session_id, from_user_id, to_user_id, score, comment, cr
 notifications    -- id, user_id, type, title, body, link, is_read, created_at
 ```
 
-All foreign key constraints are defined in schema.ts via `foreignKey()` — including user_id → users.id, session_id → sessions.id, group_id → groups.id, etc. Refer to relations.ts for query-time relation helpers.
+Foreign key constraints are defined in schema.ts via `foreignKey()` on all 9 tables — covering user_id → users.id, session_id → sessions.id, group_id → groups.id, and every other cross-table reference. Drizzle ORM relations are defined in src/db/relations.ts with `one` and `many` helpers for query-time joins across the full graph.
+
+# API Routes
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/session-requests?userId=X` | GET | Fetch pending requests for a user (as requester or host) |
+| `/api/session-requests` | POST | Create a session request (auto-creates notification for slot owner) |
+| `/api/ratings?sessionId=X` | GET | Get ratings for a session |
+| `/api/ratings` | POST | Submit a rating (updates the rated user's avg rating & count on users table) |
+
+# Services
+
+## PeerJS Signaling Server
+`server/signaling.ts` — runs on port 3001 at `/peerjs` path. Scoped (no global discovery), CORS-restricted to the Next.js origin.
+
+```bash
+npx tsx server/signaling.ts
+```
+
+Environment: `SIGNALING_PORT` (default 3001), `CORS_ORIGIN` (default http://localhost:3000). Graceful shutdown on SIGTERM/SIGINT.
+
+# Test Infrastructure
+
+Tests use **vitest** with jsdom environment. Path alias `@/` → `./src` is configured.
+
+```bash
+npx vitest run          # Single run
+npx vitest              # Watch mode
+```
+
+Test files: `src/**/*.test.{ts,tsx}` and `server/**/*.test.{ts,tsx}`.

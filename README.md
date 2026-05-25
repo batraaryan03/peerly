@@ -36,8 +36,9 @@ The **shared calendar** is the global source of truth. Every user blocks time sl
 | Calendar | **Custom** (date-fns + CSS Grid) |
 | Video Calls | **Jitsi Meet iframe API** |
 | Package Manager | **bun** |
-
-> **Note:** Phase 1 uses mock data (Zustand stores persisted to localStorage). No server or database required. Authentication and backend persistence come in Phase 2.
+| Database | **Turso (libSQL)** via Drizzle ORM |
+| Video Signaling | **PeerJS** (self-hosted signaling server on port 3001) |
+| Testing | **vitest** + jsdom |
 
 ## Design Philosophy
 
@@ -98,16 +99,20 @@ src/
 ## Commands
 
 ```bash
-bun dev          # Development server
-bun run build    # Production build
-bun run lint     # ESLint
+bun dev                       # Development server (Next.js)
+bun run build                 # Production build
+bun run lint                  # ESLint
+npx vitest run                # Run tests
+npx vitest                    # Watch mode
+npx tsx server/signaling.ts  # PeerJS signaling server (port 3001)
+bun run db:push               # Push schema to Turso
+bun run db:studio             # Launch Drizzle Studio
 ```
 
 ## Future Roadmap
 
 - [ ] Authentication via Clerk
-- [ ] MongoDB + Prisma for persistence
-- [ ] Real-time notifications
+- [ ] Real-time notifications (WebSocket)
 - [ ] Team workspaces
 - [ ] Custom WebRTC (replace Jitsi)
 - [ ] Session analytics
