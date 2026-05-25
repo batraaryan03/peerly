@@ -6,6 +6,7 @@ interface MatchingState {
   requests: SessionRequest[];
   loading: boolean;
   fetchSessions: (userId: string) => Promise<void>;
+  fetchRequests: (userId: string) => Promise<void>;
   addSession: (session: Session) => void;
   updateSessionStatus: (id: string, status: Session['status']) => Promise<void>;
   addRequest: (request: SessionRequest) => Promise<void>;
@@ -19,8 +20,11 @@ export const useMatchingStore = create<MatchingState>()((set) => ({
   requests: [],
   loading: false,
 
-  addSession: (session) => {
+  addSession: async (session) => {
     set((s) => ({ sessions: [...s.sessions, session] }));
+    try {
+      await fetch(`${BASE}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(session) });
+    } catch {}
   },
 
   fetchSessions: async (userId) => {
@@ -32,6 +36,14 @@ export const useMatchingStore = create<MatchingState>()((set) => ({
     } catch {
       set({ loading: false });
     }
+  },
+
+  fetchRequests: async (userId) => {
+    try {
+      const r = await fetch(`${BASE}/session-requests?userId=${userId}`);
+      const d = await r.json();
+      set({ requests: d.requests || [] });
+    } catch {}
   },
 
   updateSessionStatus: async (id, status) => {

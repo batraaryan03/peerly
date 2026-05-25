@@ -39,7 +39,7 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
       participantAvatar: currentUser.avatar,
       startTime: slot.startTime,
       endTime: slot.endTime,
-      status: 'approved',
+      status: 'pending',
       roomName,
       createdAt: Date.now(),
     };
@@ -52,7 +52,7 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
       requesterName: currentUser.name,
       requesterAvatar: currentUser.avatar,
       message: message.trim(),
-      status: 'accepted',
+      status: 'pending',
       createdAt: Date.now(),
     };
 
@@ -73,9 +73,9 @@ export function RequestJoinDialog({ slot, onClose }: RequestJoinDialogProps) {
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(203,108,230,0.12)] shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
             <Check className="h-5 w-5 text-[#CB6CE6]" />
           </div>
-          <h2 className="mt-3 text-base font-semibold tracking-tight text-zinc-800">Session booked!</h2>
+          <h2 className="mt-3 text-base font-semibold tracking-tight text-zinc-800">Request sent!</h2>
           <p className="mt-1.5 text-sm text-zinc-500">
-            You&apos;re paired with {slot.userName}. {formatSlotTime(slot.startTime)} &ndash; {formatSlotTime(slot.endTime)}.
+            Awaiting {slot.userName}&apos;s approval. You&apos;ll be notified when they respond.
           </p>
           <button
             onClick={onClose}

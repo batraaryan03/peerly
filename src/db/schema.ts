@@ -1,4 +1,4 @@
-import { sqliteTable, AnySQLiteColumn, text, integer, index, primaryKey } from "drizzle-orm/sqlite-core"
+import { sqliteTable, AnySQLiteColumn, text, integer, real, index, primaryKey } from "drizzle-orm/sqlite-core"
   import { sql } from "drizzle-orm"
 
 export const users = sqliteTable("users", {
@@ -7,6 +7,8 @@ export const users = sqliteTable("users", {
 	email: text().default("").notNull(),
 	avatar: text().default(""),
 	imageUrl: text("image_url").default(""),
+	rating: real().default(0),
+	ratingCount: integer("rating_count").default(0),
 	createdAt: integer("created_at").default(0).notNull(),
 	lastSeenAt: integer("last_seen_at").default(0),
 });
@@ -82,6 +84,20 @@ export const messages = sqliteTable("messages", {
 (table) => [
 	index("idx_messages_receiver").on(table.receiverId, table.createdAt),
 	index("idx_messages_group").on(table.groupId, table.createdAt),
+]);
+
+export const ratings = sqliteTable("ratings", {
+	id: text().primaryKey(),
+	sessionId: text("session_id").notNull(),
+	fromUserId: text("from_user_id").notNull(),
+	toUserId: text("to_user_id").notNull(),
+	score: integer().notNull(),
+	comment: text().default(""),
+	createdAt: integer("created_at").default(0).notNull(),
+},
+(table) => [
+	index("idx_ratings_to_user").on(table.toUserId),
+	index("idx_ratings_session").on(table.sessionId),
 ]);
 
 export const notifications = sqliteTable("notifications", {

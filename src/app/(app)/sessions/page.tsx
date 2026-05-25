@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useMatchingStore } from '@/features/matching/store/matching.store';
 import { useUserStore } from '@/features/user/store/user.store';
 import { useCalendarStore } from '@/features/calendar/store/calendar.store';
+import { RatingDialog } from '@/features/rating/components/RatingDialog';
 import {
   formatSlotTime,
   formatSlotDate,
@@ -18,13 +19,33 @@ export default function SessionsPage() {
   const sessions = useMatchingStore((s) => s.sessions);
   const requests = useMatchingStore((s) => s.requests);
   const fetchSessions = useMatchingStore((s) => s.fetchSessions);
+  const fetchRequests = useMatchingStore((s) => s.fetchRequests);
   const updateSessionStatus = useMatchingStore((s) => s.updateSessionStatus);
   const updateRequestStatus = useMatchingStore((s) => s.updateRequestStatus);
   const updateSlotStatus = useCalendarStore((s) => s.updateSlotStatus);
+  const [ratingForSession, setRatingForSession] = useState<Session | null>(null);
+  const [ratedSessions, setRatedSessions] = useState<Set<string>>(new Set());
+
+  const handleSubmitRating = async (data: { sessionId: string; fromUserId: string; toUserId: string; score: number; comment: string }) => {
+    await fetch('/api/ratings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: `rat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        ...data,
+        fromUserId: currentUser!.id,
+      }),
+    });
+    setRatedSessions((prev) => new Set(prev).add(data.sessionId));
+    setRatingForSession(null);
+  };
 
   useEffect(() => {
-    if (currentUser) fetchSessions(currentUser.id);
-  }, [currentUser, fetchSessions]);
+    if (currentUser) {
+      fetchSessions(currentUser.id);
+      fetchRequests(currentUser.id);
+    }
+  }, [currentUser, fetchSessions, fetchRequests]);
 
   if (!currentUser) {
     return (
@@ -40,7 +61,7 @@ export default function SessionsPage() {
   const participating = sessions.filter((s) => s.participantId === currentUser.id);
 
   const incomingRequests = requests.filter((r) => {
-    const session = sessions.find((s) => s.id === r.sessionId);
+    const session = sessions.find((s) => s.timeSlotId === r.timeSlotId);
     return session?.hostId === currentUser.id && r.status === 'pending';
   });
 
@@ -49,15 +70,18 @@ export default function SessionsPage() {
     const session = sessions.find((s) => s.id === sessionId);
     if (session) {
       updateSlotStatus(session.timeSlotId, 'booked');
-      const req = requests.find((r) => r.sessionId === sessionId);
+      const req = requests.find((r) => r.timeSlotId === session.timeSlotId && r.status === 'pending');
       if (req) updateRequestStatus(req.id, 'accepted');
     }
   };
 
   const handleReject = (sessionId: string) => {
     updateSessionStatus(sessionId, 'cancelled');
-    const req = requests.find((r) => r.sessionId === sessionId);
-    if (req) updateRequestStatus(req.id, 'rejected');
+    const session = sessions.find((s) => s.id === sessionId);
+    if (session) {
+      const req = requests.find((r) => r.timeSlotId === session.timeSlotId && r.status === 'pending');
+      if (req) updateRequestStatus(req.id, 'rejected');
+    }
   };
 
   const SessionCard = ({ session, isHost }: { session: Session; isHost: boolean }) => {
@@ -103,7 +127,17 @@ export default function SessionsPage() {
             </Link>
           )}
           {session.status === 'approved' && past && (
-            <span className="text-xs text-zinc-400">Completed</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-400">Completed</span>
+              {!ratedSessions.has(session.id) && (
+                <button
+                  onClick={() => setRatingForSession(session)}
+                  className="rounded bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-500 transition-colors hover:bg-emerald-500/20"
+                >
+                  Rate
+                </button>
+              )}
+            </div>
           )}
           {session.status === 'pending' && isHost && (
             <div className="flex items-center gap-1">
@@ -146,7 +180,7 @@ export default function SessionsPage() {
           </div>
           <div className="mt-3 flex flex-col gap-2">
             {incomingRequests.map((req) => {
-              const session = sessions.find((s) => s.id === req.sessionId);
+              const session = sessions.find((s) => s.timeSlotId === req.timeSlotId);
               if (!session) return null;
               return <SessionCard key={req.id} session={session} isHost />;
             })}
@@ -179,6 +213,13 @@ export default function SessionsPage() {
           )}
         </div>
       </section>
+      {ratingForSession && (
+        <RatingDialog
+          session={ratingForSession}
+          onClose={() => setRatingForSession(null)}
+          onSubmit={handleSubmitRating}
+        />
+      )}
     </div>
   );
 }

@@ -10,7 +10,8 @@
     "db:init": "curl -X POST http://localhost:3000/api/db/init",
     "db:studio": "drizzle-kit studio",
     "db:pull": "drizzle-kit introspect",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:view": "concurrently \"bunx drizzle-kit studio\" \"bunx drizzle-lab visualizer\" \"sleep 2 && bunx drizzle-view\""
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -50,6 +51,7 @@
     "@types/react": "^19",
     "@types/react-big-calendar": "^1.16.3",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",

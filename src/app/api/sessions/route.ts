@@ -5,6 +5,31 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const db = getDb();
+
+    await db.insert(sessions).values({
+      id: body.id,
+      timeSlotId: body.timeSlotId,
+      hostId: body.hostId,
+      participantId: body.participantId,
+      startTime: body.startTime,
+      endTime: body.endTime,
+      status: body.status,
+      roomName: body.roomName || '',
+      createdAt: body.createdAt,
+      updatedAt: Date.now(),
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error creating session:', error);
+    return NextResponse.json({ error: 'Failed to create' }, { status: 500 });
+  }
+}
+
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get('userId');
   if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
