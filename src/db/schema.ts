@@ -1,5 +1,4 @@
-import { sqliteTable, AnySQLiteColumn, text, integer, real, index, primaryKey } from "drizzle-orm/sqlite-core"
-  import { sql } from "drizzle-orm"
+import { sqliteTable, text, integer, real, index, primaryKey, foreignKey } from "drizzle-orm/sqlite-core"
 
 export const users = sqliteTable("users", {
 	id: text().primaryKey(),
@@ -24,8 +23,8 @@ export const timeSlots = sqliteTable("time_slots", {
 	date: text().notNull(),
 	status: text().default("available").notNull(),
 	createdAt: integer("created_at").default(0).notNull(),
-},
-(table) => [
+}, (table) => [
+	foreignKey(() => ({ columns: [table.userId], foreignColumns: [users.id] })),
 	index("idx_slots_start_end").on(table.startTime, table.endTime),
 	index("idx_slots_status").on(table.status),
 	index("idx_slots_date").on(table.date),
@@ -43,7 +42,11 @@ export const sessions = sqliteTable("sessions", {
 	roomName: text("room_name").default(""),
 	createdAt: integer("created_at").default(0).notNull(),
 	updatedAt: integer("updated_at").default(0).notNull(),
-});
+}, (table) => [
+	foreignKey(() => ({ columns: [table.timeSlotId], foreignColumns: [timeSlots.id] })),
+	foreignKey(() => ({ columns: [table.hostId], foreignColumns: [users.id] })),
+	foreignKey(() => ({ columns: [table.participantId], foreignColumns: [users.id] })),
+]);
 
 export const sessionRequests = sqliteTable("session_requests", {
 	id: text().primaryKey(),
@@ -52,7 +55,10 @@ export const sessionRequests = sqliteTable("session_requests", {
 	message: text().default(""),
 	status: text().default("pending").notNull(),
 	createdAt: integer("created_at").default(0).notNull(),
-});
+}, (table) => [
+	foreignKey(() => ({ columns: [table.slotId], foreignColumns: [timeSlots.id] })),
+	foreignKey(() => ({ columns: [table.requesterId], foreignColumns: [users.id] })),
+]);
 
 export const groups = sqliteTable("groups", {
 	id: text().primaryKey(),
@@ -61,16 +67,19 @@ export const groups = sqliteTable("groups", {
 	avatarUrl: text("avatar_url").default(""),
 	createdBy: text("created_by").notNull(),
 	createdAt: integer("created_at").default(0).notNull(),
-});
+}, (table) => [
+	foreignKey(() => ({ columns: [table.createdBy], foreignColumns: [users.id] })),
+]);
 
 export const groupMembers = sqliteTable("group_members", {
 	groupId: text("group_id").notNull(),
 	userId: text("user_id").notNull(),
 	role: text().default("member").notNull(),
 	joinedAt: integer("joined_at").default(0).notNull(),
-},
-(table) => [
-	primaryKey({ columns: [table.groupId, table.userId], name: "group_members_group_id_user_id_pk"})
+}, (table) => [
+	primaryKey({ columns: [table.groupId, table.userId], name: "group_members_group_id_user_id_pk"}),
+	foreignKey(() => ({ columns: [table.groupId], foreignColumns: [groups.id] })),
+	foreignKey(() => ({ columns: [table.userId], foreignColumns: [users.id] })),
 ]);
 
 export const messages = sqliteTable("messages", {
@@ -80,8 +89,10 @@ export const messages = sqliteTable("messages", {
 	groupId: text("group_id"),
 	content: text().default("").notNull(),
 	createdAt: integer("created_at").default(0).notNull(),
-},
-(table) => [
+}, (table) => [
+	foreignKey(() => ({ columns: [table.senderId], foreignColumns: [users.id] })),
+	foreignKey(() => ({ columns: [table.receiverId], foreignColumns: [users.id] })),
+	foreignKey(() => ({ columns: [table.groupId], foreignColumns: [groups.id] })),
 	index("idx_messages_receiver").on(table.receiverId, table.createdAt),
 	index("idx_messages_group").on(table.groupId, table.createdAt),
 ]);
@@ -94,8 +105,10 @@ export const ratings = sqliteTable("ratings", {
 	score: integer().notNull(),
 	comment: text().default(""),
 	createdAt: integer("created_at").default(0).notNull(),
-},
-(table) => [
+}, (table) => [
+	foreignKey(() => ({ columns: [table.sessionId], foreignColumns: [sessions.id] })),
+	foreignKey(() => ({ columns: [table.fromUserId], foreignColumns: [users.id] })),
+	foreignKey(() => ({ columns: [table.toUserId], foreignColumns: [users.id] })),
 	index("idx_ratings_to_user").on(table.toUserId),
 	index("idx_ratings_session").on(table.sessionId),
 ]);
@@ -109,8 +122,7 @@ export const notifications = sqliteTable("notifications", {
 	link: text().default(""),
 	isRead: integer("is_read").default(0).notNull(),
 	createdAt: integer("created_at").default(0).notNull(),
-},
-(table) => [
+}, (table) => [
+	foreignKey(() => ({ columns: [table.userId], foreignColumns: [users.id] })),
 	index("idx_notifications_user").on(table.userId, table.isRead, table.createdAt),
 ]);
-
